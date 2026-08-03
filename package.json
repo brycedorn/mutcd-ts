@@ -1,0 +1,55 @@
+{
+  "name": "mutcd-ts",
+  "version": "0.1.0",
+  "description": "Parametric US MUTCD road signs as SVG, faithful to the 2024 Standard Highway Signs.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brycedorn/mutcd-ts.git"
+  },
+  "homepage": "https://brycedorn.github.io/mutcd-ts/",
+  "bugs": "https://github.com/brycedorn/mutcd-ts/issues",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "workspaces": [
+    "site"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "site": "npm --workspace site run dev",
+    "site:build": "npm --workspace site run build"
+  },
+  "keywords": [
+    "mutcd",
+    "road-signs",
+    "traffic-signs",
+    "highway-signs",
+    "svg",
+    "threejs",
+    "texture",
+    "fhwa",
+    "shs",
+    "typescript"
+  ],
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
+  }
+}

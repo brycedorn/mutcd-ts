@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mutcd-ts: parametric US road signs as SVG</title>
+    <meta
+      name="description"
+      content="Render US MUTCD road signs as crisp, parametric SVG. Zero dependencies, typed props, faithful to the 2024 Standard Highway Signs."
+    />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <header class="nav">
+      <a class="brand" href="./" aria-label="mutcd-ts home">
+        <span class="brand-name" id="brand-title" aria-hidden="true"></span>
+      </a>
+      <nav class="nav-links">
+        <a href="signs/">Signs</a>
+        <a
+          class="github-link"
+          href="https://github.com/brycedorn/mutcd-ts"
+          rel="noopener"
+          aria-label="View mutcd-ts on GitHub"
+        >
+          <svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"
+            />
+          </svg>
+        </a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <h1>US road signs,<br />rendered from code.</h1>
+          <p class="lede">
+            Parametric MUTCD signs as crisp SVG, faithful to the official 2024
+            Standard Highway Signs. Typed props, deterministic output, and
+            zero runtime dependencies. Ready for three.js textures, maps, and
+            simulation.
+          </p>
+          <div class="install" id="install">
+            <code>npm install mutcd-ts</code>
+            <button id="copy-install" type="button" aria-label="Copy install command">Copy</button>
+          </div>
+          <div class="cta">
+            <a class="btn btn-primary" href="signs/">Browse all signs</a>
+            <a class="btn" href="https://github.com/brycedorn/mutcd-ts" rel="noopener">Documentation</a>
+          </div>
+        </div>
+        <div class="hero-stage">
+          <canvas id="hero-canvas" aria-label="Animated road with signs moving past on a conveyor"></canvas>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <h2>47 signs across five categories</h2>
+          <p>
+            Regulatory, warning, guide, route marker, and school signs. Every
+            template is drawn in inches from the official layout sheets. The
+            catalog covers the most common signs so far, with more on the way.
+            Missing one you need?
+            <a
+              href="https://github.com/brycedorn/mutcd-ts/issues"
+              rel="noopener"
+              >Request it</a
+            >.
+          </p>
+        </div>
+        <div id="sign-grid" class="sign-grid"></div>
+        <div class="section-more">
+          <a class="btn" href="signs/">View all signs &rarr;</a>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <h2>Typed props, live output</h2>
+          <p>
+            Every sign exposes typed props for its MUTCD code, checked at
+            compile time. Change a value and the SVG re-renders instantly.
+          </p>
+        </div>
+        <div class="playground">
+          <div class="playground-left">
+            <div class="playground-tabs" id="example-tabs"></div>
+            <div class="codeblock-wrap">
+              <pre class="codeblock"><code id="example-code"></code></pre>
+              <button class="code-copy" id="copy-example" type="button">Copy</button>
+            </div>
+            <div class="playground-controls" id="example-controls"></div>
+          </div>
+          <div class="playground-stage" id="example-stage"></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <h2>Measured against the rulebook</h2>
+          <p>
+            Sign geometry is traced from the official FHWA 2024 Standard
+            Highway Signs artwork, and every template is verified with a
+            pixel-level diff against it: gray in the overlay means agreement.
+            The slight hue difference is expected. The official files use
+            print CMYK conversions while mutcd-ts uses the Pantone colors the
+            spec defines, so the diff compares by sign color class.
+          </p>
+        </div>
+        <div class="compare">
+          <figure class="compare-cell">
+            <img src="./compare/M1-1-ours.png" alt="M1-1 Interstate route shield rendered by mutcd-ts" loading="lazy" />
+            <figcaption>mutcd-ts render</figcaption>
+          </figure>
+          <figure class="compare-cell">
+            <img src="./compare/M1-1-ref.png" alt="Official FHWA artwork for the M1-1 Interstate route shield" loading="lazy" />
+            <figcaption>Official FHWA artwork</figcaption>
+          </figure>
+          <figure class="compare-cell">
+            <img src="./compare/M1-1-overlay.png" alt="Difference overlay for M1-1: fully gray, meaning every pixel matches" loading="lazy" />
+            <figcaption>Difference overlay: 0.00% mismatch</figcaption>
+          </figure>
+        </div>
+        <div class="compare-stats">
+          <div class="stat">
+            <span class="stat-value">45/45</span>
+            <span class="stat-label">references pass verification</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">0.00%</span>
+            <span class="stat-label">pixel mismatch on 42 of 45 signs</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">&le;0.8%</span>
+            <span class="stat-label">worst case, on font-rendered guide signs</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <p>
+          MIT licensed. Sign geometry derives from the public-domain FHWA 2024
+          Standard Highway Signs. Not certified sign fabrication data.
+        </p>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="https://www.npmjs.com/package/mutcd-ts" target="_blank" rel="noopener">
+            npm
+          </a>
+          <a href="https://github.com/brycedorn/mutcd-ts" target="_blank" rel="noopener">
+            GitHub
+          </a>
+          <a
+            href="https://github.com/brycedorn/mutcd-ts/issues"
+            target="_blank"
+            rel="noopener"
+          >
+            Issues
+          </a>
+        </nav>
+      </div>
+    </footer>
+
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
