@@ -1,11 +1,12 @@
 import { el, SvgNode } from "./svg";
-import { layoutText, fitText, FontSeries } from "../font/layout";
+import { layoutText, fitText } from "../font/layout";
+import type { FontData } from "../font/types";
 
 /** Single line of text as a filled path node. */
 export function text(
   content: string,
   opts: {
-    series: FontSeries;
+    font: FontData;
     height: number;
     x: number;
     /** Baseline y. */
@@ -19,11 +20,11 @@ export function text(
   return el("path", { d, fill: opts.fill });
 }
 
-/** Centered line that steps down series / shrinks to fit maxWidth. */
+/** Centered line that steps down the font chain / shrinks to fit maxWidth. */
 export function fittedText(
   content: string,
   opts: {
-    series?: FontSeries;
+    fonts: FontData[];
     height: number;
     x: number;
     y: number;
@@ -39,11 +40,11 @@ export function fittedText(
 }
 
 /**
- * Stack of centered lines. Each entry may override series/height.
+ * Stack of centered lines. Each entry may override font/height.
  * `y` positions are baselines computed from top plus line offsets.
  */
 export function textStack(
-  lines: { text: string; height: number; series?: FontSeries; extraGap?: number }[],
+  lines: { text: string; height: number; font?: FontData; extraGap?: number }[],
   opts: {
     cx: number;
     /** y of the first line's cap top. */
@@ -51,7 +52,7 @@ export function textStack(
     /** Gap between the baseline and the next line's cap top. */
     gap: number;
     fill: string;
-    series?: FontSeries;
+    font: FontData;
     tracking?: number;
   },
 ): SvgNode[] {
@@ -61,7 +62,7 @@ export function textStack(
     const baseline = capTop + line.height;
     nodes.push(
       text(line.text, {
-        series: line.series ?? opts.series ?? "C",
+        font: line.font ?? opts.font,
         height: line.height,
         x: opts.cx,
         y: baseline,

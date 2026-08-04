@@ -81,6 +81,16 @@ export function listSigns(): {
   });
 }
 
+export type { SpeedLimitProps } from "./r2";
+export type { LaneUseProps } from "./r3";
+export type { OneWayProps, NoParkingProps, RoadClosedProps } from "./r6-r11";
+export type { DirectionProps } from "./w1";
+export type { FluorescentProps, AdvisorySpeedProps, RoadWorkProps } from "./w11-w20";
+export type { DestinationLine, StreetNameProps, ExitGoreProps } from "./guide";
+export type { RouteProps } from "./markers";
+export type { SchoolProps } from "./school";
+export type { SignArt } from "./artwork";
+
 export {
   R1_1,
   R1_2,

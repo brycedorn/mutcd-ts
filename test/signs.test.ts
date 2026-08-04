@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { renderSVG, listSigns, svgSizeInches } from "../src/index";
 import type { SignCode } from "../src/index";
 import { measureText, fitText } from "../src/font/layout";
+import { seriesB, seriesE, CHAIN_E } from "../src/font/series";
 
 describe("renderSVG", () => {
   it("renders every registered sign with defaults", () => {
@@ -48,14 +49,14 @@ describe("renderSVG", () => {
 
 describe("text layout", () => {
   it("measures wider series as wider text", () => {
-    const b = measureText("MAIN", "B");
-    const e = measureText("MAIN", "E");
+    const b = measureText("MAIN", seriesB);
+    const e = measureText("MAIN", seriesE);
     expect(e).toBeGreaterThan(b);
   });
 
   it("steps series down before shrinking height", () => {
     const wide = fitText("BROADWAY", {
-      series: "E",
+      fonts: CHAIN_E,
       height: 6,
       x: 0,
       y: 0,
@@ -65,13 +66,13 @@ describe("text layout", () => {
     expect(wide.width).toBeLessThanOrEqual(30.001);
     // A generous budget keeps the preferred series and height.
     const roomy = fitText("BROADWAY", {
-      series: "E",
+      fonts: CHAIN_E,
       height: 6,
       x: 0,
       y: 0,
       maxWidth: 500,
     });
-    expect(roomy.series).toBe("E");
+    expect(roomy.font.series).toBe("E");
     expect(roomy.height).toBe(6);
   });
 });

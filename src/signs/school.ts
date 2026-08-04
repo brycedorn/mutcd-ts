@@ -8,7 +8,7 @@ export type SchoolProps = {
 };
 
 /** S1-1 School. 36x36 pentagon, official 2024 artwork. */
-export const S1_1 = defineSign<SchoolProps>({
+export const S1_1 = /* @__PURE__ */ defineSign<SchoolProps>({
   code: "S1-1",
   name: "School",
   category: "school",

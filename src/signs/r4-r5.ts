@@ -6,7 +6,7 @@ import { ART_R5_1 } from "./generated/artwork/R5-1";
 import { ART_R5_2 } from "./generated/artwork/R5-2";
 
 /** R4-1 Do Not Pass. 24x30, official 2024 artwork. */
-export const R4_1 = defineSign({
+export const R4_1 = /* @__PURE__ */ defineSign({
   code: "R4-1",
   name: "Do Not Pass",
   category: "regulatory",
@@ -15,7 +15,7 @@ export const R4_1 = defineSign({
 });
 
 /** R4-7 Keep Right. 24x30, official 2024 artwork. */
-export const R4_7 = defineSign({
+export const R4_7 = /* @__PURE__ */ defineSign({
   code: "R4-7",
   name: "Keep Right",
   category: "regulatory",
@@ -24,7 +24,7 @@ export const R4_7 = defineSign({
 });
 
 /** R5-1 Do Not Enter. 30x30, official 2024 artwork. */
-export const R5_1 = defineSign({
+export const R5_1 = /* @__PURE__ */ defineSign({
   code: "R5-1",
   name: "Do Not Enter",
   category: "regulatory",
@@ -33,7 +33,7 @@ export const R5_1 = defineSign({
 });
 
 /** R5-2 No Trucks. 24x24, official 2024 artwork. */
-export const R5_2 = defineSign({
+export const R5_2 = /* @__PURE__ */ defineSign({
   code: "R5-2",
   name: "No Trucks",
   category: "regulatory",

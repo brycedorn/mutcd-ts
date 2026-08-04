@@ -4,6 +4,7 @@ import { el, round, SvgNode } from "../core/svg";
 import { roundedRect } from "../core/shapes";
 import { text } from "../core/text";
 import { measureText, measureInkBearings, fitText } from "../font/layout";
+import { CHAIN_D, seriesD, seriesE } from "../font/series";
 import { arrow } from "../symbols/arrows";
 
 /**
@@ -80,14 +81,14 @@ function destinationSign(code: string, name: string, lineCount: 1 | 2 | 3) {
       const colGap = 2;
       // Margins and gaps measure to ink edges, so lay out by ink extents.
       const measureLine = (line: DestinationLine) => {
-        let advance = measureText(line.name, "D");
+        let advance = measureText(line.name, seriesD);
         let lastText = line.name;
         if (line.miles !== undefined) {
           lastText = String(line.miles);
-          advance += colGap + measureText(lastText, "D");
+          advance += colGap + measureText(lastText, seriesD);
         }
-        const left = measureInkBearings(line.name, "D").left;
-        const right = measureInkBearings(lastText, "D").right;
+        const left = measureInkBearings(line.name, seriesD).left;
+        const right = measureInkBearings(lastText, seriesD).right;
         return { ink: (advance - left - right) * capH, left: left * capH };
       };
       let maxW = 0;
@@ -111,7 +112,7 @@ function destinationSign(code: string, name: string, lineCount: 1 | 2 | 3) {
         const penX = inkX - measureLine(line).left;
         nodes.push(
           text(line.name, {
-            series: "D",
+            font: seriesD,
             height: capH,
             x: penX,
             y: baseline,
@@ -121,9 +122,9 @@ function destinationSign(code: string, name: string, lineCount: 1 | 2 | 3) {
         if (line.miles !== undefined) {
           nodes.push(
             text(String(line.miles), {
-              series: "D",
+              font: seriesD,
               height: capH,
-              x: penX + (measureText(line.name, "D") + colGap) * capH,
+              x: penX + (measureText(line.name, seriesD) + colGap) * capH,
               y: baseline,
               fill: COLORS.white,
             }),
@@ -140,9 +141,9 @@ function destinationSign(code: string, name: string, lineCount: 1 | 2 | 3) {
   });
 }
 
-export const D1_1 = destinationSign("D1-1", "Destination (1 line)", 1);
-export const D1_2 = destinationSign("D1-2", "Destination (2 lines)", 2);
-export const D1_3 = destinationSign("D1-3", "Destination (3 lines)", 3);
+export const D1_1 = /* @__PURE__ */ destinationSign("D1-1", "Destination (1 line)", 1);
+export const D1_2 = /* @__PURE__ */ destinationSign("D1-2", "Destination (2 lines)", 2);
+export const D1_3 = /* @__PURE__ */ destinationSign("D1-3", "Destination (3 lines)", 3);
 
 export type StreetNameProps = {
   /** Street name, mixed case, e.g. "Wyngate". */
@@ -154,7 +155,7 @@ export type StreetNameProps = {
 };
 
 /** D3-1 Street Name. Variable width, 6" caps on a green field. */
-export const D3_1 = defineSign<StreetNameProps>({
+export const D3_1 = /* @__PURE__ */ defineSign<StreetNameProps>({
   code: "D3-1",
   name: "Street Name",
   category: "guide",
@@ -173,18 +174,18 @@ export const D3_1 = defineSign<StreetNameProps>({
     const full = [prefix, name].filter(Boolean).join(" ");
     const maxSignW = 108;
     const fit = fitText(full, {
-      series: "D",
+      fonts: CHAIN_D,
       height: capH,
       x: 0,
       y: 0,
       tracking,
-      maxWidth: maxSignW - margin * 2 - (suffix ? measureText(suffix, "D") * suffixH + gap : 0),
+      maxWidth: maxSignW - margin * 2 - (suffix ? measureText(suffix, seriesD) * suffixH + gap : 0),
     });
-    const nameBearings = measureInkBearings(full, fit.series);
+    const nameBearings = measureInkBearings(full, fit.font);
     const nameInkW = fit.width - (nameBearings.left + nameBearings.right) * fit.height;
-    const sufBearings = measureInkBearings(suffix, "D");
+    const sufBearings = measureInkBearings(suffix, seriesD);
     const sufInkW = suffix
-      ? (measureText(suffix, "D") - sufBearings.left - sufBearings.right) * suffixH
+      ? (measureText(suffix, seriesD) - sufBearings.left - sufBearings.right) * suffixH
       : 0;
     const w = Math.ceil(nameInkW + sufInkW + (suffix ? gap : 0) + margin * 2);
     const baseline = h * 0.701;
@@ -192,7 +193,7 @@ export const D3_1 = defineSign<StreetNameProps>({
     nodes.push(
       el("path", {
         d: fitText(full, {
-          series: fit.series,
+          fonts: [fit.font],
           height: fit.height,
           x: margin - nameBearings.left * fit.height,
           y: baseline,
@@ -205,7 +206,7 @@ export const D3_1 = defineSign<StreetNameProps>({
     if (suffix) {
       nodes.push(
         text(suffix, {
-          series: "D",
+          font: seriesD,
           height: suffixH,
           x: margin + nameInkW + gap - sufBearings.left * suffixH,
           y: baseline,
@@ -237,7 +238,7 @@ function exitGoreWidth(digits: number, letters: number): number {
  * 12" EXIT centered with cap top at 10", 18" number at x 16 with baseline 49",
  * 23x23" up-right arrow (centered when unnumbered, right-side otherwise).
  */
-export const E5_1 = defineSign<ExitGoreProps>({
+export const E5_1 = /* @__PURE__ */ defineSign<ExitGoreProps>({
   code: "E5-1",
   name: "Exit Gore",
   category: "guide",
@@ -249,10 +250,10 @@ export const E5_1 = defineSign<ExitGoreProps>({
     let w: number;
     let numW = 0;
     if (label && match) {
-      numW = measureText(label, "E") * 18;
+      numW = measureText(label, seriesE) * 18;
       w = Math.max(exitGoreWidth(match[1]!.length, match[2]!.length), Math.ceil(16 + numW + 3 + 23 + 6));
     } else if (label) {
-      numW = measureText(label, "E") * 18;
+      numW = measureText(label, seriesE) * 18;
       w = Math.ceil(16 + numW + 3 + 23 + 6);
     } else {
       w = 72;
@@ -271,9 +272,9 @@ export const E5_1 = defineSign<ExitGoreProps>({
     for (const [ch, off] of exitOffsets) {
       nodes.push(
         text(ch, {
-          series: "E",
+          font: seriesE,
           height: 12,
-          x: exitLeft + (off - measureInkBearings(ch, "E").left) * 12,
+          x: exitLeft + (off - measureInkBearings(ch, seriesE).left) * 12,
           y: 22,
           fill: COLORS.white,
         }),
@@ -281,7 +282,7 @@ export const E5_1 = defineSign<ExitGoreProps>({
     }
     if (label) {
       nodes.push(
-        text(label, { series: "E", height: 18, x: 16, y: 49, fill: COLORS.white }),
+        text(label, { font: seriesE, height: 18, x: 16, y: 49, fill: COLORS.white }),
       );
     }
     const arrowCx = label ? w - 6 - 11.5 : w / 2;

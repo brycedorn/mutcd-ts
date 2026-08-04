@@ -10,7 +10,7 @@ import { ART_W3_3 } from "./generated/artwork/W3-3";
 import type { DirectionProps } from "./w1";
 
 /** W2-1 Crossroad. Official 2024 artwork. */
-export const W2_1 = defineSign({
+export const W2_1 = /* @__PURE__ */ defineSign({
   code: "W2-1",
   name: "Crossroad",
   category: "warning",
@@ -19,7 +19,7 @@ export const W2_1 = defineSign({
 });
 
 /** W2-2 Side Road (perpendicular). Official 2024 artwork per direction. */
-export const W2_2 = defineSign<DirectionProps>({
+export const W2_2 = /* @__PURE__ */ defineSign<DirectionProps>({
   code: "W2-2",
   name: "Side Road",
   category: "warning",
@@ -29,7 +29,7 @@ export const W2_2 = defineSign<DirectionProps>({
 });
 
 /** W2-4 T-Intersection. Official 2024 artwork. */
-export const W2_4 = defineSign({
+export const W2_4 = /* @__PURE__ */ defineSign({
   code: "W2-4",
   name: "T-Intersection",
   category: "warning",
@@ -38,7 +38,7 @@ export const W2_4 = defineSign({
 });
 
 /** W2-5 Y-Intersection. Official 2024 artwork. */
-export const W2_5 = defineSign({
+export const W2_5 = /* @__PURE__ */ defineSign({
   code: "W2-5",
   name: "Y-Intersection",
   category: "warning",
@@ -47,7 +47,7 @@ export const W2_5 = defineSign({
 });
 
 /** W3-1 Stop Ahead. Official 2024 artwork. */
-export const W3_1 = defineSign({
+export const W3_1 = /* @__PURE__ */ defineSign({
   code: "W3-1",
   name: "Stop Ahead",
   category: "warning",
@@ -56,7 +56,7 @@ export const W3_1 = defineSign({
 });
 
 /** W3-2 Yield Ahead. Official 2024 artwork. */
-export const W3_2 = defineSign({
+export const W3_2 = /* @__PURE__ */ defineSign({
   code: "W3-2",
   name: "Yield Ahead",
   category: "warning",
@@ -65,7 +65,7 @@ export const W3_2 = defineSign({
 });
 
 /** W3-3 Signal Ahead. Official 2024 artwork. */
-export const W3_3 = defineSign({
+export const W3_3 = /* @__PURE__ */ defineSign({
   code: "W3-3",
   name: "Signal Ahead",
   category: "warning",

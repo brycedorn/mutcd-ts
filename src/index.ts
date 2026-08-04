@@ -1,9 +1,14 @@
-export { renderSVG, rasterize, svgSizeInches } from "./render";
+export { renderSVG, renderSign, rasterize, svgSizeInches } from "./render";
 export type { RasterizeOptions } from "./render";
 export { SIGNS, listSigns } from "./signs";
+export * from "./signs";
 export type { SignCode, SignProps } from "./signs";
 export { COLORS } from "./core/colors";
 export type { SignColor } from "./core/colors";
+export { defineSign } from "./core/types";
 export type { SignTemplate, SignRender, SignCategory } from "./core/types";
 export { measureText, layoutText, fitText } from "./font/layout";
-export type { FontSeries } from "./font/layout";
+export type { FontSeries, TextOptions, FitTextOptions } from "./font/layout";
+export type { FontData, GlyphData } from "./font/types";
+export { FONTS, getFont } from "./font/fonts";
+export { seriesB, seriesC, seriesD, seriesE, CHAIN_C, CHAIN_D, CHAIN_E } from "./font/series";

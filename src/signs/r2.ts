@@ -1,6 +1,7 @@
 import { defineSign } from "../core/types";
 import { COLORS } from "../core/colors";
 import { fittedText } from "../core/text";
+import { CHAIN_D } from "../font/series";
 import { artNodes, artLegendNodes } from "./artwork";
 import { ART_R2_1 } from "./generated/artwork/R2-1";
 
@@ -10,7 +11,7 @@ export type SpeedLimitProps = {
 };
 
 /** R2-1 Speed Limit. 24x30 official blank + SPEED LIMIT; parametric numerals. */
-export const R2_1 = defineSign<SpeedLimitProps>({
+export const R2_1 = /* @__PURE__ */ defineSign<SpeedLimitProps>({
   code: "R2-1",
   name: "Speed Limit",
   category: "regulatory",
@@ -28,7 +29,7 @@ export const R2_1 = defineSign<SpeedLimitProps>({
           ? artLegendNodes(ART_R2_1)
           : [
               fittedText(String(speed), {
-                series: "D",
+                fonts: CHAIN_D,
                 height: 10,
                 x: w / 2,
                 y: 26,

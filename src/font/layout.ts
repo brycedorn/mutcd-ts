@@ -1,29 +1,9 @@
 import type { FontData } from "./types";
-import { seriesB } from "./generated/series-B";
-import { seriesC } from "./generated/series-C";
-import { seriesE } from "./generated/series-E";
-import { seriesD2024 } from "./generated/series-D-shs2024";
-import { seriesEM } from "./generated/series-EM";
-import { seriesF } from "./generated/series-F";
 
 export type FontSeries = "B" | "C" | "D" | "E" | "EM" | "F";
 
-const FONTS: Record<FontSeries, FontData> = {
-  B: seriesB,
-  C: seriesC,
-  // Series D uses mixed-case glyphs traced from official 2024
-  // destination/street-name artwork where available (Roadgeek D fallback).
-  D: seriesD2024,
-  E: seriesE,
-  EM: seriesEM,
-  F: seriesF,
-};
-
-/** Narrowest to widest, used for step-down fitting. */
-const SERIES_ORDER: FontSeries[] = ["B", "C", "D", "E", "EM", "F"];
-
 export type TextOptions = {
-  series: FontSeries;
+  font: FontData;
   /** Uppercase letter height in sign units (inches). */
   height: number;
   x: number;
@@ -35,12 +15,7 @@ export type TextOptions = {
 };
 
 /** Width of text in multiples of letter height. */
-export function measureText(
-  text: string,
-  series: FontSeries,
-  tracking = 0,
-): number {
-  const font = FONTS[series];
+export function measureText(text: string, font: FontData, tracking = 0): number {
   let w = 0;
   const chars = [...text];
   for (let i = 0; i < chars.length; i++) {
@@ -99,9 +74,8 @@ export function layoutText(
   text: string,
   opts: TextOptions,
 ): { d: string; width: number } {
-  const { series, height, y, anchor = "start", tracking = 0 } = opts;
-  const font = FONTS[series];
-  const width = measureText(text, series, tracking) * height;
+  const { font, height, y, anchor = "start", tracking = 0 } = opts;
+  const width = measureText(text, font, tracking) * height;
   let penX =
     anchor === "middle"
       ? opts.x - width / 2
@@ -123,9 +97,9 @@ export function layoutText(
   return { d, width };
 }
 
-export type FitTextOptions = Omit<TextOptions, "series"> & {
-  /** Preferred (widest) series; steps down toward B if too wide. */
-  series?: FontSeries;
+export type FitTextOptions = Omit<TextOptions, "font"> & {
+  /** Candidate fonts, preferred (widest) first; narrower series follow. */
+  fonts: FontData[];
   maxWidth: number;
   /** Minimum letter height when shrinking, in sign units. */
   minHeight?: number;
@@ -138,38 +112,31 @@ export type FitTextOptions = Omit<TextOptions, "series"> & {
 export function fitText(
   text: string,
   opts: FitTextOptions,
-): { d: string; width: number; series: FontSeries; height: number } {
-  const preferred = opts.series ?? "D";
-  const startIdx = SERIES_ORDER.indexOf(preferred);
-  const candidates = SERIES_ORDER.slice(0, startIdx + 1).reverse();
-  for (const series of candidates) {
-    const w = measureText(text, series, opts.tracking ?? 0) * opts.height;
+): { d: string; width: number; font: FontData; height: number } {
+  for (const font of opts.fonts) {
+    const w = measureText(text, font, opts.tracking ?? 0) * opts.height;
     if (w <= opts.maxWidth) {
-      const laid = layoutText(text, { ...opts, series });
-      return { ...laid, series, height: opts.height };
+      const laid = layoutText(text, { ...opts, font });
+      return { ...laid, font, height: opts.height };
     }
   }
-  // Shrink height with the narrowest series.
-  const narrowest = candidates[candidates.length - 1] ?? "B";
+  // Shrink height with the narrowest font.
+  const narrowest = opts.fonts[opts.fonts.length - 1]!;
   const unitWidth = measureText(text, narrowest, opts.tracking ?? 0);
   const minHeight = opts.minHeight ?? opts.height * 0.5;
   const height = Math.max(minHeight, opts.maxWidth / Math.max(unitWidth, 1e-6));
-  const laid = layoutText(text, { ...opts, series: narrowest, height });
-  return { ...laid, series: narrowest, height };
-}
-
-export function getFont(series: FontSeries): FontData {
-  return FONTS[series];
+  const laid = layoutText(text, { ...opts, font: narrowest, height });
+  return { ...laid, font: narrowest, height };
 }
 
 const inkXCache = new Map<string, { min: number; max: number }>();
 
-function glyphInkX(series: FontSeries, ch: string): { min: number; max: number } {
-  const key = series + ch;
+function glyphInkX(font: FontData, ch: string): { min: number; max: number } {
+  const key = font.series + ch;
   let ext = inkXCache.get(key);
   if (ext === undefined) {
     ext = { min: 0, max: 0 };
-    const g = FONTS[series].glyphs[ch];
+    const g = font.glyphs[ch];
     if (g?.d) {
       let min = Infinity;
       let max = -Infinity;
@@ -196,16 +163,16 @@ function glyphInkX(series: FontSeries, ch: string): { min: number; max: number }
  */
 export function measureInkBearings(
   text: string,
-  series: FontSeries,
+  font: FontData,
 ): { left: number; right: number } {
   const chars = [...text];
-  const first = chars.find((c) => FONTS[series].glyphs[c]?.d);
-  const last = [...chars].reverse().find((c) => FONTS[series].glyphs[c]?.d);
+  const first = chars.find((c) => font.glyphs[c]?.d);
+  const last = [...chars].reverse().find((c) => font.glyphs[c]?.d);
   if (!first || !last) return { left: 0, right: 0 };
-  const lastGlyph = FONTS[series].glyphs[last]!;
+  const lastGlyph = font.glyphs[last]!;
   return {
-    left: glyphInkX(series, first).min,
-    right: lastGlyph.a - glyphInkX(series, last).max,
+    left: glyphInkX(font, first).min,
+    right: lastGlyph.a - glyphInkX(font, last).max,
   };
 }
 
@@ -216,11 +183,10 @@ const inkDepthCache = new Map<string, number>();
  * height (0 for text with no descenders). Measured from actual glyph
  * outlines, so it is tighter than the font's nominal descender.
  */
-export function inkDepthBelowBaseline(text: string, series: FontSeries): number {
-  const font = FONTS[series];
+export function inkDepthBelowBaseline(text: string, font: FontData): number {
   let depth = 0;
   for (const ch of text) {
-    const key = series + ch;
+    const key = font.series + ch;
     let d = inkDepthCache.get(key);
     if (d === undefined) {
       d = 0;

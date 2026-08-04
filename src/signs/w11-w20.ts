@@ -1,6 +1,7 @@
 import { defineSign } from "../core/types";
 import { COLORS } from "../core/colors";
 import { fittedText } from "../core/text";
+import { CHAIN_D } from "../font/series";
 import { artRender, artNodes, artLegendNodes } from "./artwork";
 import { ART_W11_1 } from "./generated/artwork/W11-1";
 import { ART_W11_2 } from "./generated/artwork/W11-2";
@@ -15,7 +16,7 @@ export type FluorescentProps = {
 };
 
 /** W11-1 Bicycle. Official 2024 artwork. */
-export const W11_1 = defineSign<FluorescentProps>({
+export const W11_1 = /* @__PURE__ */ defineSign<FluorescentProps>({
   code: "W11-1",
   name: "Bicycle",
   category: "warning",
@@ -25,7 +26,7 @@ export const W11_1 = defineSign<FluorescentProps>({
 });
 
 /** W11-2 Pedestrian Crossing. Official 2024 artwork. */
-export const W11_2 = defineSign<FluorescentProps>({
+export const W11_2 = /* @__PURE__ */ defineSign<FluorescentProps>({
   code: "W11-2",
   name: "Pedestrian Crossing",
   category: "warning",
@@ -40,7 +41,7 @@ export type AdvisorySpeedProps = {
 };
 
 /** W13-1P Advisory Speed plaque. Official blank + MPH; parametric numerals. */
-export const W13_1P = defineSign<AdvisorySpeedProps>({
+export const W13_1P = /* @__PURE__ */ defineSign<AdvisorySpeedProps>({
   code: "W13-1P",
   name: "Advisory Speed (plaque)",
   category: "warning",
@@ -57,7 +58,7 @@ export const W13_1P = defineSign<AdvisorySpeedProps>({
           ? artLegendNodes(ART_W13_1P)
           : [
               fittedText(String(speed), {
-                series: "D",
+                fonts: CHAIN_D,
                 height: 8,
                 x: s / 2,
                 y: 10.5,
@@ -72,7 +73,7 @@ export const W13_1P = defineSign<AdvisorySpeedProps>({
 });
 
 /** W14-1 Dead End, W14-2 No Outlet. Official 2024 artwork. */
-export const W14_1 = defineSign({
+export const W14_1 = /* @__PURE__ */ defineSign({
   code: "W14-1",
   name: "Dead End",
   category: "warning",
@@ -80,7 +81,7 @@ export const W14_1 = defineSign({
   render: () => artRender(ART_W14_1),
 });
 
-export const W14_2 = defineSign({
+export const W14_2 = /* @__PURE__ */ defineSign({
   code: "W14-2",
   name: "No Outlet",
   category: "warning",
@@ -94,7 +95,7 @@ export type RoadWorkProps = {
 };
 
 /** W20-1 Road Work. 48" orange diamond, official blank + ROAD WORK. */
-export const W20_1 = defineSign<RoadWorkProps>({
+export const W20_1 = /* @__PURE__ */ defineSign<RoadWorkProps>({
   code: "W20-1",
   name: "Road Work",
   category: "warning",
@@ -111,7 +112,7 @@ export const W20_1 = defineSign<RoadWorkProps>({
           ? artLegendNodes(art)
           : [
               fittedText(distance || "AHEAD", {
-                series: "D",
+                fonts: CHAIN_D,
                 height: 7,
                 x: art.width / 2,
                 y: 47.95,

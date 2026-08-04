@@ -2,6 +2,7 @@ import { defineSign } from "../core/types";
 import { COLORS } from "../core/colors";
 import { el } from "../core/svg";
 import { fitText } from "../font/layout";
+import { CHAIN_C, CHAIN_D } from "../font/series";
 import { artNodes, artLegendNodes } from "./artwork";
 import type { SignArt } from "./artwork";
 import { ART_M1_1 } from "./generated/artwork/M1-1";
@@ -24,7 +25,7 @@ function routeNumerals(
 }
 
 /** M1-1 Interstate Route shield. 24x24 official artwork; parametric numerals. */
-export const M1_1 = defineSign<RouteProps>({
+export const M1_1 = /* @__PURE__ */ defineSign<RouteProps>({
   code: "M1-1",
   name: "Interstate Route",
   category: "marker",
@@ -37,7 +38,7 @@ export const M1_1 = defineSign<RouteProps>({
       ...routeNumerals(ART_M1_1, route, "20", () =>
         el("path", {
           d: fitText(route, {
-            series: "D",
+            fonts: CHAIN_D,
             height: 11,
             x: 12,
             y: 17.5,
@@ -52,7 +53,7 @@ export const M1_1 = defineSign<RouteProps>({
 });
 
 /** M1-4 US Route shield. 24x24 official artwork; parametric numerals. */
-export const M1_4 = defineSign<RouteProps>({
+export const M1_4 = /* @__PURE__ */ defineSign<RouteProps>({
   code: "M1-4",
   name: "US Route",
   category: "marker",
@@ -65,7 +66,7 @@ export const M1_4 = defineSign<RouteProps>({
       ...routeNumerals(ART_M1_4, route, "40", () =>
         el("path", {
           d: fitText(route, {
-            series: "D",
+            fonts: CHAIN_D,
             height: 12,
             x: 12,
             y: 17.5,
@@ -80,7 +81,7 @@ export const M1_4 = defineSign<RouteProps>({
 });
 
 /** M1-5 State Route (generic square). 24x24 official artwork; parametric numerals. */
-export const M1_5 = defineSign<RouteProps>({
+export const M1_5 = /* @__PURE__ */ defineSign<RouteProps>({
   code: "M1-5",
   name: "State Route",
   category: "marker",
@@ -93,7 +94,7 @@ export const M1_5 = defineSign<RouteProps>({
       ...routeNumerals(ART_M1_5, route, "21", () =>
         el("path", {
           d: fitText(route, {
-            series: "C",
+            fonts: CHAIN_C,
             height: 12,
             x: 12,
             y: 18,

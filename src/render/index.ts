@@ -1,9 +1,24 @@
 import { svgRoot } from "../core/svg";
+import type { SignTemplate } from "../core/types";
 import { SIGNS, SignCode, SignProps } from "../signs";
 
 /**
- * Renders a sign to an SVG string. The viewBox is in inches, so the SVG
- * scales losslessly to any output size.
+ * Renders a sign template to an SVG string. Importing templates directly and
+ * rendering them with this function keeps unused signs out of your bundle.
+ */
+export function renderSign<P extends object>(
+  template: SignTemplate<P>,
+  props?: Partial<P>,
+): string {
+  const merged = { ...template.defaults, ...props } as P;
+  const { width, height, nodes } = template.render(merged);
+  return svgRoot(width, height, nodes);
+}
+
+/**
+ * Renders a sign by MUTCD code to an SVG string. The viewBox is in inches, so
+ * the SVG scales losslessly to any output size. Looking up by code pulls the
+ * whole catalog into the bundle; use renderSign for pay-per-sign bundling.
  */
 export function renderSVG<C extends SignCode>(
   code: C,
@@ -11,15 +26,7 @@ export function renderSVG<C extends SignCode>(
 ): string {
   const template = SIGNS[code];
   if (!template) throw new Error(`Unknown sign code: ${code}`);
-  const merged = { ...template.defaults, ...props } as SignProps<C>;
-  const { width, height, nodes } = (
-    template.render as (p: SignProps<C>) => {
-      width: number;
-      height: number;
-      nodes: string[];
-    }
-  )(merged);
-  return svgRoot(width, height, nodes);
+  return renderSign(template as unknown as SignTemplate<SignProps<C>>, props);
 }
 
 export type RasterizeOptions = {

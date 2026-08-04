@@ -46,6 +46,17 @@ renderSVG("D1-1", { lines: [{ name: "Pullman", arrow: "left", miles: 3 }] });
 
 `renderSVG` returns a plain string and runs in any JavaScript runtime; `rasterize` requires a browser (or worker) environment. The package never imports three.js.
 
+### Bundle size
+
+Looking signs up by code (`renderSVG`) pulls the whole catalog (~80 KB gzipped). If you only need a few signs, import their templates directly and render with `renderSign`; bundlers then tree-shake the rest, down to a few KB per sign:
+
+```ts
+import { renderSign, R1_1, R2_1 } from "mutcd-ts";
+
+renderSign(R1_1);                // ~1.4 KB gzipped in your bundle
+renderSign(R2_1, { speed: 65 }); // text-fitting signs also pull the lettering they use
+```
+
 ## Accuracy
 
 Sign geometry is traced from the official FHWA 2024 Standard Highway Signs vector artwork and verified with a pixel-level comparison against it: renders are rasterized, classified into the standard sign colors, and diffed against the official files. All 45 referenced signs pass; 42 of them match at exactly 0.00% pixel mismatch, and the worst case (font-rendered guide signs) is within 0.8%. Colors follow the Pantone values the spec defines rather than the print CMYK conversions baked into the official files.

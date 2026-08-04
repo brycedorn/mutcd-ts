@@ -1,6 +1,7 @@
 import { defineSign } from "../core/types";
 import { COLORS } from "../core/colors";
 import { textStack, fittedText } from "../core/text";
+import { CHAIN_D, seriesC } from "../font/series";
 import { arrow } from "../symbols/arrows";
 import { artRender, artNodes, artLegendNodes } from "./artwork";
 import { ART_R6_1_L, ART_R6_1_R } from "./generated/artwork/R6-1";
@@ -15,7 +16,7 @@ export type OneWayProps = {
 };
 
 /** R6-1 One Way (horizontal). 36x12, official 2024 artwork per direction. */
-export const R6_1 = defineSign<OneWayProps>({
+export const R6_1 = /* @__PURE__ */ defineSign<OneWayProps>({
   code: "R6-1",
   name: "One Way",
   category: "regulatory",
@@ -25,7 +26,7 @@ export const R6_1 = defineSign<OneWayProps>({
 });
 
 /** R6-2 One Way (vertical). 18x24, official 2024 artwork per direction. */
-export const R6_2 = defineSign<OneWayProps>({
+export const R6_2 = /* @__PURE__ */ defineSign<OneWayProps>({
   code: "R6-2",
   name: "One Way (vertical)",
   category: "regulatory",
@@ -41,7 +42,7 @@ export type NoParkingProps = {
 };
 
 /** R7-1 style No Parking: official blank + NO PARKING; parametric times/arrow. */
-export const R7_1 = defineSign<NoParkingProps>({
+export const R7_1 = /* @__PURE__ */ defineSign<NoParkingProps>({
   code: "R7-1",
   name: "No Parking (times)",
   category: "regulatory",
@@ -63,7 +64,7 @@ export const R7_1 = defineSign<NoParkingProps>({
       ...artNodes(ART_R7_1),
       ...textStack(
         lines.map((t) => ({ text: t, height: lineH })),
-        { cx: w / 2, top: zoneTop, gap, fill: COLORS.red, series: "C" },
+        { cx: w / 2, top: zoneTop, gap, fill: COLORS.red, font: seriesC },
       ),
     ];
     if (arrowDir !== "none") {
@@ -89,7 +90,7 @@ export const R7_1 = defineSign<NoParkingProps>({
 });
 
 /** R8-3 No Parking (symbol). 24x24, official 2024 artwork. */
-export const R8_3 = defineSign({
+export const R8_3 = /* @__PURE__ */ defineSign({
   code: "R8-3",
   name: "No Parking (symbol)",
   category: "regulatory",
@@ -98,7 +99,7 @@ export const R8_3 = defineSign({
 });
 
 /** R10-11 No Turn On Red. 24x30, official 2024 artwork. */
-export const R10_11 = defineSign({
+export const R10_11 = /* @__PURE__ */ defineSign({
   code: "R10-11",
   name: "No Turn On Red",
   category: "regulatory",
@@ -112,7 +113,7 @@ export type RoadClosedProps = {
 };
 
 /** R11-2 Road Closed. 48x30 official blank; parametric legend. */
-export const R11_2 = defineSign<RoadClosedProps>({
+export const R11_2 = /* @__PURE__ */ defineSign<RoadClosedProps>({
   code: "R11-2",
   name: "Road Closed",
   category: "regulatory",
@@ -130,7 +131,7 @@ export const R11_2 = defineSign<RoadClosedProps>({
           ? artLegendNodes(ART_R11_2)
           : lines.map((t, i) =>
               fittedText(t, {
-                series: "D",
+                fonts: CHAIN_D,
                 height: 8,
                 x: w / 2,
                 y: 13 + i * 12,
