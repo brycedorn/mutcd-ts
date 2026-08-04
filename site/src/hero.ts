@@ -3,7 +3,7 @@ import type { SignCode } from "mutcd-ts";
 
 /**
  * Isometric treadmill hero: the whole ground is a conveyor belt that wraps
- * around rollers at both ends. Everything (road markings, signs, bushes) lives
+ * around rollers at both ends. Everything (road markings, signs, plants) lives
  * at a belt coordinate s and rides it: over the far roller into view, along
  * the flat top, then under the near roller. World units are px at scale 1;
  * u is the direction of travel, v crosses the road.
@@ -30,7 +30,6 @@ const CYCLE: CycleEntry[] = [
 // Iso basis: u runs far (top-right) to near (bottom-left), v crosses the road.
 const U = norm(-2, 1);
 const V = norm(2, 1);
-const V_ANGLE = Math.atan2(V[1], V[0]);
 
 // World layout (px at scale 1).
 const HALF_LEN = 150; // half belt length along u (flat section)
@@ -48,7 +47,7 @@ const S_CREST = HALF_LEN + THETA_CREST * ROLL_R;
 const THETA_FADE = 0.45; // riders start fading as they tip over the near edge
 const THETA_HIDE = 1.5; // fully faded (belt meets the grid); rider can despawn
 const SIGN_LANE = -(ROAD_HALF + 24); // sign posts across the road, facing viewer
-const BUSH_LANE = ROAD_HALF + 40;
+const PLANT_LANE = ROAD_HALF + 40;
 const SPEED = 55; // world units per second
 const DASH_LEN = 18;
 const DASH_GAP = 15;
@@ -57,11 +56,12 @@ const RASTER_OVERSAMPLE = 2;
 
 const BELT_SPAN = 2 * (HALF_LEN + ROLL_R * THETA_HIDE); // one rider lap
 
-const C_GRASS: RGB = [207, 222, 199];
-const C_GRASS_SIDE: RGB = [143, 164, 135];
-const C_GRASS_MOONLIT: RGB = [62, 86, 82];
-const C_GRASS_SIDE_MOONLIT: RGB = [38, 59, 57];
+const C_SAND: RGB = [224, 207, 170];
+const C_SAND_SIDE: RGB = [169, 143, 103];
+const C_SAND_SUNSET: RGB = [121, 86, 73];
+const C_SAND_SIDE_SUNSET: RGB = [76, 55, 51];
 const C_ROAD: RGB = [93, 102, 112];
+const C_ROAD_NIGHT: RGB = [48, 55, 64];
 const C_EDGE: RGB = [244, 246, 248];
 const C_DASH: RGB = [242, 199, 68];
 
@@ -258,7 +258,7 @@ type Rider = {
   s: number;
   theta: number;
   zone: -1 | 0 | 1;
-  kind: "sign" | "bush";
+  kind: "sign" | "plant";
   idx: number;
 };
 
@@ -273,8 +273,9 @@ function draw(
   const h = canvas.height / dpr;
   const dark = document.documentElement.dataset.theme === "dark";
   const reducedContrast = document.documentElement.dataset.signContrast === "reduced";
-  const grass = dark ? C_GRASS_MOONLIT : C_GRASS;
-  const grassSide = dark ? C_GRASS_SIDE_MOONLIT : C_GRASS_SIDE;
+  const grass = dark ? C_SAND_SUNSET : C_SAND;
+  const grassSide = dark ? C_SAND_SIDE_SUNSET : C_SAND_SIDE;
+  const road = dark ? C_ROAD_NIGHT : C_ROAD;
   ctx.save();
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, w, h);
@@ -368,7 +369,7 @@ function draw(
   const offset = ((dist % period) + period) % period;
   const dashOn = (s: number) => mod(s + HALF_LEN - offset, period) < DASH_LEN;
 
-  // --- riders (signs + bushes) at belt coordinates ---
+  // --- riders (signs + plants) at belt coordinates ---
   const riders: Rider[] = [];
   const signSlots = 3;
   const signSpacing = BELT_SPAN / signSlots;
@@ -386,19 +387,19 @@ function draw(
       idx: mod(i + lap * signSlots, CYCLE.length),
     });
   }
-  const bushSlots = 4;
-  const bushSpacing = BELT_SPAN / bushSlots;
-  for (let i = 0; i < bushSlots; i++) {
-    const travelled = dist + i * bushSpacing + 37;
+  const plantSlots = 4;
+  const plantSpacing = BELT_SPAN / plantSlots;
+  for (let i = 0; i < plantSlots; i++) {
+    const travelled = dist + i * plantSpacing + 37;
     const s = mod(travelled, BELT_SPAN) - BELT_SPAN / 2;
     const c = cross(s);
     if (c.theta >= THETA_HIDE) continue;
-    riders.push({ s, theta: c.theta, zone: c.zone, kind: "bush", idx: i });
+    riders.push({ s, theta: c.theta, zone: c.zone, kind: "plant", idx: i });
   }
 
   const drawRider = (r: Rider) => {
     const phi = riderPhi(r.s, r.theta, r.zone);
-    const lane = r.kind === "bush" ? BUSH_LANE : SIGN_LANE;
+    const lane = r.kind === "plant" ? PLANT_LANE : SIGN_LANE;
     // Shadow: none while cresting the far roller (it would land on empty
     // space behind the belt), ease in over the first flat stretch, and
     // fade out quickly as the rider starts to rotate over the near edge.
@@ -406,8 +407,8 @@ function draw(
     if (r.zone === 0) shadowFade = Math.min(1, (r.s + HALF_LEN) / 40);
     else if (r.zone === 1) shadowFade = Math.max(0, 1 - r.theta * 3);
     const paint = () => {
-      if (r.kind === "bush") {
-        drawBush(ctx, Q(r.s, lane), scale, r.idx, phi, shadowFade, dark);
+      if (r.kind === "plant") {
+        drawDesertPlant(ctx, Q(r.s, lane), scale, r.idx, phi, shadowFade, dark);
         return;
       }
       const sprite = sprites.get(r.idx);
@@ -459,7 +460,7 @@ function draw(
     const endF = dir === 1 ? 0.7 : 1;
     const bands: [number, number, RGB, number][] = [
       [-HALF_WID, HALF_WID, grass, 1],
-      [-ROAD_HALF, ROAD_HALF, C_ROAD, 1],
+      [-ROAD_HALF, ROAD_HALF, road, 1],
       [-(ROAD_HALF - 7) - 1.5, -(ROAD_HALF - 7) + 1.5, C_EDGE, 0.85],
       [ROAD_HALF - 7 - 1.5, ROAD_HALF - 7 + 1.5, C_EDGE, 0.85],
     ];
@@ -509,7 +510,7 @@ function draw(
     P(HALF_LEN, HALF_WID),
     P(HALF_LEN, -HALF_WID),
   ]);
-  poly(ctx, shade(C_ROAD, 1), [
+  poly(ctx, shade(road, 1), [
     P(-HALF_LEN, -ROAD_HALF),
     P(-HALF_LEN, ROAD_HALF),
     P(HALF_LEN, ROAD_HALF),
@@ -620,7 +621,70 @@ function drawSign(
   ctx.restore();
 }
 
-function drawBush(
+function drawPlantShadow(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  r: number,
+  variant: number,
+  fade: number,
+) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.transform(V[0], V[1], -U[0], -U[1], 0, 0);
+  ctx.filter = `blur(${Math.max(0.35, r * 0.04)}px)`;
+  const g = ctx.createLinearGradient(0, 0, 0, r * 3.3);
+  g.addColorStop(0, `rgba(26,33,41,${0.26 * fade})`);
+  g.addColorStop(0.65, `rgba(26,33,41,${0.13 * fade})`);
+  g.addColorStop(1, "rgba(26,33,41,0)");
+
+  if (variant % 2 === 0) {
+    ctx.strokeStyle = g;
+    ctx.lineWidth = r * 0.58;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, r * 3.1);
+    ctx.moveTo(0, r * 1.4);
+    ctx.lineTo(-r * 0.85, r * 1.4);
+    ctx.lineTo(-r * 0.85, r * 2.15);
+    ctx.moveTo(0, r * 1.85);
+    ctx.lineTo(r * 0.8, r * 1.85);
+    ctx.lineTo(r * 0.8, r * 2.5);
+    ctx.stroke();
+  } else {
+    const leaves: [number, number, number][] = [
+      [-1.25, 1.15, 0.48],
+      [1.25, 1.15, 0.48],
+      [-0.75, 1.65, 0.54],
+      [0.75, 1.65, 0.54],
+      [-0.3, 2.1, 0.58],
+      [0.3, 2.1, 0.58],
+    ];
+    ctx.fillStyle = g;
+    for (const [tipX, tipY, width] of leaves) {
+      ctx.beginPath();
+      ctx.moveTo(-r * width * 0.5, 0);
+      ctx.quadraticCurveTo(
+        r * (tipX * 0.45 - width * 0.35),
+        r * tipY * 0.45,
+        r * tipX,
+        r * tipY,
+      );
+      ctx.quadraticCurveTo(
+        r * (tipX * 0.45 + width * 0.35),
+        r * tipY * 0.45,
+        r * width * 0.5,
+        0,
+      );
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+function drawDesertPlant(
   ctx: CanvasRenderingContext2D,
   [x, y]: [number, number],
   scale: number,
@@ -629,36 +693,61 @@ function drawBush(
   shadowFade: number,
   dark: boolean,
 ) {
-  const r = (7 + (variant % 3) * 2.5) * scale;
-  // Ground shadow: a soft ellipse cast slightly behind (-U) in ground space,
-  // matching the sign shadows; it stays flat while the bush pitches.
+  const r = (6.5 + (variant % 3) * 1.25) * scale;
   if (shadowFade > 0.05) {
-    ctx.save();
-    ctx.translate(x - U[0] * r * 0.5, y - U[1] * r * 0.5);
-    ctx.rotate(V_ANGLE);
-    ctx.scale(r * 1.1, r * 0.4);
-    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
-    g.addColorStop(0, `rgba(26,33,41,${0.16 * shadowFade})`);
-    g.addColorStop(0.7, `rgba(26,33,41,${0.1 * shadowFade})`);
-    g.addColorStop(1, "rgba(26,33,41,0)");
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(0, 0, 1, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+    drawPlantShadow(ctx, x, y, r, variant, shadowFade);
   }
   const [a, b, c, d] = panelFrame(phi);
   ctx.save();
   ctx.translate(x, y);
   ctx.transform(a, b, c, d, 0, 0);
-  const lightColor = variant % 2 ? "#7fa06f" : "#6e9160";
-  const moonlitColor = variant % 2 ? "#466d65" : "#385e57";
-  ctx.fillStyle = dark ? moonlitColor : lightColor;
-  ctx.beginPath();
-  ctx.arc(-r * 0.4, -r * 0.55, r * 0.62, 0, Math.PI * 2);
-  ctx.arc(r * 0.38, -r * 0.5, r * 0.55, 0, Math.PI * 2);
-  ctx.arc(0, -r * 0.95, r * 0.58, 0, Math.PI * 2);
-  ctx.fill();
+  if (variant % 2 === 0) {
+    ctx.strokeStyle = dark ? "#537d6e" : "#4f7a4f";
+    ctx.lineWidth = r * 0.62;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, -r * 3.1);
+    ctx.moveTo(0, -r * 1.4);
+    ctx.lineTo(-r * 0.85, -r * 1.4);
+    ctx.lineTo(-r * 0.85, -r * 2.15);
+    ctx.moveTo(0, -r * 1.85);
+    ctx.lineTo(r * 0.8, -r * 1.85);
+    ctx.lineTo(r * 0.8, -r * 2.5);
+    ctx.stroke();
+
+    ctx.strokeStyle = dark ? "#7aa28f" : "#77a36c";
+    ctx.lineWidth = r * 0.1;
+    ctx.beginPath();
+    ctx.moveTo(-r * 0.14, -r * 0.25);
+    ctx.lineTo(-r * 0.14, -r * 2.85);
+    ctx.stroke();
+  } else {
+    const leaves: [number, number, number][] = [
+      [-1.05, 1.25, 0.5],
+      [1.05, 1.25, 0.5],
+      [-0.72, 1.6, 0.56],
+      [0.72, 1.6, 0.56],
+      [-0.4, 1.9, 0.58],
+      [0.4, 1.9, 0.58],
+      [0, 2.2, 0.62],
+    ];
+    for (let i = 0; i < leaves.length; i++) {
+      const [angle, length, width] = leaves[i]!;
+      ctx.fillStyle = dark
+        ? i % 2 ? "#6d9181" : "#5f8274"
+        : i % 2 ? "#668b70" : "#557962";
+      ctx.save();
+      ctx.rotate(angle);
+      ctx.beginPath();
+      ctx.moveTo(-r * width * 0.5, 0);
+      ctx.quadraticCurveTo(-r * width * 0.5, -r * length * 0.42, 0, -r * length);
+      ctx.quadraticCurveTo(r * width * 0.5, -r * length * 0.42, r * width * 0.5, 0);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
   ctx.restore();
 }
 

@@ -1,5 +1,5 @@
 // Inline head scripts set initial appearance before paint; this module wires
-// the controls and resets sign contrast whenever the color theme changes.
+// the independent theme and sign-contrast controls.
 
 const mq = window.matchMedia("(prefers-color-scheme: dark)");
 const THEME_KEY = "theme";
@@ -21,10 +21,6 @@ function applySignContrast(reduced: boolean): void {
 
 function applyTheme(dark: boolean): void {
   document.documentElement.dataset.theme = dark ? "dark" : "light";
-  applySignContrast(dark);
-  if (localStorage.getItem(SIGN_CONTRAST_KEY) !== null) {
-    localStorage.setItem(SIGN_CONTRAST_KEY, dark ? "reduced" : "normal");
-  }
 }
 
 export function initTheme(): void {
