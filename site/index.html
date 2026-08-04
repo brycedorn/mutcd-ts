@@ -3,12 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mutcd-ts: parametric US road signs as SVG</title>
+    <title>mutcd-ts</title>
     <meta
       name="description"
       content="Render US MUTCD road signs as crisp, parametric SVG. Zero dependencies, typed props, faithful to the 2024 Standard Highway Signs."
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <script>
+      // Resolve appearance before first paint to avoid a flash.
+      {
+        const theme =
+          localStorage.getItem("theme") ??
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.dataset.signContrast =
+          localStorage.getItem("sign-contrast") ?? (theme === "dark" ? "reduced" : "normal");
+      }
+    </script>
     <link rel="stylesheet" href="./src/style.css" />
   </head>
   <body>
@@ -17,10 +28,34 @@
         <span class="brand-name" id="brand-title" aria-hidden="true"></span>
       </a>
       <nav class="nav-links">
+        <a href="./" aria-current="page">Home</a>
         <a href="signs/">Signs</a>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark mode">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="5" />
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+          </svg>
+        </button>
+        <button
+          class="contrast-toggle"
+          id="contrast-toggle"
+          type="button"
+          aria-label="Toggle reduced sign contrast"
+          aria-pressed="false"
+          title="Reduced sign contrast"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 3a9 9 0 0 1 0 18Z" />
+          </svg>
+        </button>
         <a
           class="github-link"
           href="https://github.com/brycedorn/mutcd-ts"
+          target="_blank"
           rel="noopener"
           aria-label="View mutcd-ts on GitHub"
         >
@@ -39,10 +74,10 @@
         <div class="hero-copy">
           <h1>US road signs,<br />rendered from code.</h1>
           <p class="lede">
-            Parametric MUTCD signs as crisp SVG, faithful to the official 2024
-            Standard Highway Signs. Typed props, deterministic output, and
-            zero runtime dependencies. Ready for three.js textures, maps, and
-            simulation.
+            Parametric signs from the Manual on Uniform Traffic Control Devices
+            (MUTCD), rendered as crisp SVG and faithful to the official 2024
+            standard. Typed props, deterministic output, and zero
+            runtime dependencies. Ready for three.js textures, maps, and simulation.
           </p>
           <div class="install" id="install">
             <code>npm install mutcd-ts</code>
@@ -50,7 +85,13 @@
           </div>
           <div class="cta">
             <a class="btn btn-primary" href="signs/">Browse all signs</a>
-            <a class="btn" href="https://github.com/brycedorn/mutcd-ts" rel="noopener">Documentation</a>
+            <a
+              class="btn"
+              href="https://github.com/brycedorn/mutcd-ts#readme"
+              target="_blank"
+              rel="noopener"
+              >Documentation</a
+            >
           </div>
         </div>
         <div class="hero-stage">
@@ -67,7 +108,9 @@
             catalog covers the most common signs so far, with more on the way.
             Missing one you need?
             <a
+              class="request-link"
               href="https://github.com/brycedorn/mutcd-ts/issues"
+              target="_blank"
               rel="noopener"
               >Request it</a
             >.
@@ -84,7 +127,7 @@
           <h2>Typed props, live output</h2>
           <p>
             Every sign exposes typed props for its MUTCD code, checked at
-            compile time. Change a value and the SVG re-renders instantly.
+            compile time. Change a value and the SVG reflects this instantly.
           </p>
         </div>
         <div class="playground">
@@ -106,10 +149,10 @@
           <p>
             Sign geometry is traced from the official FHWA 2024 Standard
             Highway Signs artwork, and every template is verified with a
-            pixel-level diff against it: gray in the overlay means agreement.
-            The slight hue difference is expected. The official files use
+            pixel-level diff.
+            The slight hue difference is expected: official files use
             print CMYK conversions while mutcd-ts uses the Pantone colors the
-            spec defines, so the diff compares by sign color class.
+            spec defines.
           </p>
         </div>
         <div class="compare">
@@ -136,7 +179,7 @@
             <span class="stat-label">pixel mismatch on 42 of 45 signs</span>
           </div>
           <div class="stat">
-            <span class="stat-value">&le;0.8%</span>
+            <span class="stat-value">&le; 0.8%</span>
             <span class="stat-label">worst case, on font-rendered guide signs</span>
           </div>
         </div>

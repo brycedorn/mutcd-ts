@@ -59,6 +59,8 @@ const BELT_SPAN = 2 * (HALF_LEN + ROLL_R * THETA_HIDE); // one rider lap
 
 const C_GRASS: RGB = [207, 222, 199];
 const C_GRASS_SIDE: RGB = [143, 164, 135];
+const C_GRASS_MOONLIT: RGB = [62, 86, 82];
+const C_GRASS_SIDE_MOONLIT: RGB = [38, 59, 57];
 const C_ROAD: RGB = [93, 102, 112];
 const C_EDGE: RGB = [244, 246, 248];
 const C_DASH: RGB = [242, 199, 68];
@@ -196,17 +198,33 @@ export function startHeroAnimation(canvas: HTMLCanvasElement): void {
 
   let raf = 0;
   let start = performance.now();
+  let backingDpr = 0;
 
-  const resize = () => {
+  const resize = (force = false): boolean => {
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.max(1, Math.round(rect.width * dpr));
-    canvas.height = Math.max(1, Math.round(rect.height * dpr));
+    const width = Math.max(1, Math.round(rect.width * dpr));
+    const height = Math.max(1, Math.round(rect.height * dpr));
+    if (width === canvas.width && height === canvas.height) return false;
+    const threshold = Math.max(1, Math.round(8 * dpr));
+    if (
+      !force &&
+      dpr === backingDpr &&
+      Math.abs(width - canvas.width) < threshold &&
+      Math.abs(height - canvas.height) < threshold
+    ) {
+      return false;
+    }
+    canvas.width = width;
+    canvas.height = height;
+    backingDpr = dpr;
+    return true;
   };
-  resize();
+  resize(true);
   const ro = new ResizeObserver(() => {
-    resize();
-    if (reduceMotion) frame(start);
+    if (!resize()) return;
+    const now = reduceMotion ? 0 : performance.now();
+    draw(ctx, canvas, sprites, (now - start) / 1000);
   });
   ro.observe(canvas);
 
@@ -220,6 +238,9 @@ export function startHeroAnimation(canvas: HTMLCanvasElement): void {
     // A static, fully-populated scene once sprites are ready.
     start = -40_000;
     setTimeout(() => frame(0), 300);
+    new MutationObserver(() => frame(0)).observe(document.documentElement, {
+      attributeFilter: ["data-theme", "data-sign-contrast"],
+    });
   } else {
     raf = requestAnimationFrame(frame);
   }
@@ -250,13 +271,17 @@ function draw(
   const dpr = window.devicePixelRatio || 1;
   const w = canvas.width / dpr;
   const h = canvas.height / dpr;
+  const dark = document.documentElement.dataset.theme === "dark";
+  const reducedContrast = document.documentElement.dataset.signContrast === "reduced";
+  const grass = dark ? C_GRASS_MOONLIT : C_GRASS;
+  const grassSide = dark ? C_GRASS_SIDE_MOONLIT : C_GRASS_SIDE;
   ctx.save();
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, w, h);
 
   // Keep headroom above the belt for tall signs at the far roller, and room
   // below for the belt body and riders wrapping under the near roller.
-  const scale = Math.min(w / 470, h / 470);
+  const scale = Math.min(w / 470, h / 470) * 0.7;
   const cx = w / 2;
   const cy = h / 2 + 40 * scale;
   const P = (a: number, b: number): [number, number] => [
@@ -382,7 +407,7 @@ function draw(
     else if (r.zone === 1) shadowFade = Math.max(0, 1 - r.theta * 3);
     const paint = () => {
       if (r.kind === "bush") {
-        drawBush(ctx, Q(r.s, lane), scale, r.idx, phi, shadowFade);
+        drawBush(ctx, Q(r.s, lane), scale, r.idx, phi, shadowFade, dark);
         return;
       }
       const sprite = sprites.get(r.idx);
@@ -431,9 +456,9 @@ function draw(
     const sTerm = dir * (dir === 1 ? S_END : S_CREST);
     // Only the near wrap darkens toward the ground; the far lip (where signs
     // first appear) stays fully lit.
-    const endF = dir === 1 ? 0.45 : 1;
+    const endF = dir === 1 ? 0.7 : 1;
     const bands: [number, number, RGB, number][] = [
-      [-HALF_WID, HALF_WID, C_GRASS, 1],
+      [-HALF_WID, HALF_WID, grass, 1],
       [-ROAD_HALF, ROAD_HALF, C_ROAD, 1],
       [-(ROAD_HALF - 7) - 1.5, -(ROAD_HALF - 7) + 1.5, C_EDGE, 0.85],
       [ROAD_HALF - 7 - 1.5, ROAD_HALF - 7 + 1.5, C_EDGE, 0.85],
@@ -442,8 +467,12 @@ function draw(
     const [gx1, gy1] = Q(sTerm, 0);
     for (const [b0, b1, color, alpha] of bands) {
       const g = ctx.createLinearGradient(gx0, gy0, gx1, gy1);
+      const shadeRange = 1 - endF;
       g.addColorStop(0, shade(color, 1, alpha));
-      g.addColorStop(0.55, shade(color, (1 + endF) / 2, alpha));
+      g.addColorStop(0.2, shade(color, 1 - shadeRange * 0.104, alpha));
+      g.addColorStop(0.4, shade(color, 1 - shadeRange * 0.352, alpha));
+      g.addColorStop(0.6, shade(color, 1 - shadeRange * 0.648, alpha));
+      g.addColorStop(0.8, shade(color, 1 - shadeRange * 0.896, alpha));
       g.addColorStop(1, shade(color, endF, alpha));
       ctx.fillStyle = g;
       bandPath(sFlat, sTerm, b0, b1);
@@ -461,7 +490,7 @@ function draw(
   //    from the belt's top edge down to the ground line. Sampling the full
   //    wrap at both ends traces the rollers' half-disc end caps, so each end
   //    meets the grid flush; closePath is the straight ground-level edge.
-  ctx.fillStyle = shade(C_GRASS_SIDE, 1);
+  ctx.fillStyle = shade(grassSide, 1);
   ctx.beginPath();
   for (let s = -S_END; s < S_END; s += 6) {
     const [x, y] = Q(s, HALF_WID);
@@ -474,7 +503,7 @@ function draw(
   ctx.fill();
 
   // 3. Flat top: grass, road, edge lines, scrolling dashes.
-  poly(ctx, shade(C_GRASS, 1), [
+  poly(ctx, shade(grass, 1), [
     P(-HALF_LEN, -HALF_WID),
     P(-HALF_LEN, HALF_WID),
     P(HALF_LEN, HALF_WID),
@@ -522,6 +551,14 @@ function draw(
   const nearFront = riders.filter((r) => r.zone === 1);
   nearFront.sort((a, b) => a.s - b.s);
   for (const r of nearFront) drawRider(r);
+
+  // Reduced-contrast lighting dims the complete scene without changing its palette.
+  if (reducedContrast) {
+    ctx.globalCompositeOperation = "source-atop";
+    ctx.fillStyle = "rgba(9,13,20,0.22)";
+    ctx.fillRect(0, 0, w, h);
+    ctx.globalCompositeOperation = "source-over";
+  }
 
   ctx.restore();
 }
@@ -590,6 +627,7 @@ function drawBush(
   variant: number,
   phi: number,
   shadowFade: number,
+  dark: boolean,
 ) {
   const r = (7 + (variant % 3) * 2.5) * scale;
   // Ground shadow: a soft ellipse cast slightly behind (-U) in ground space,
@@ -613,7 +651,9 @@ function drawBush(
   ctx.save();
   ctx.translate(x, y);
   ctx.transform(a, b, c, d, 0, 0);
-  ctx.fillStyle = variant % 2 ? "#7fa06f" : "#6e9160";
+  const lightColor = variant % 2 ? "#7fa06f" : "#6e9160";
+  const moonlitColor = variant % 2 ? "#466d65" : "#385e57";
+  ctx.fillStyle = dark ? moonlitColor : lightColor;
   ctx.beginPath();
   ctx.arc(-r * 0.4, -r * 0.55, r * 0.62, 0, Math.PI * 2);
   ctx.arc(r * 0.38, -r * 0.5, r * 0.55, 0, Math.PI * 2);

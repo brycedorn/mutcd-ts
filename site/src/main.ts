@@ -1,6 +1,9 @@
 import { renderSVG, SIGNS } from "mutcd-ts";
 import type { SignCode } from "mutcd-ts";
 import { startHeroAnimation } from "./hero";
+import { initTheme } from "./theme";
+
+initTheme();
 
 document.getElementById("brand-title")!.innerHTML = renderSVG("D1-1", {
   lines: [{ name: "mutcd-ts", arrow: "right" }],
@@ -63,7 +66,11 @@ type Example = {
 
 const EXAMPLES: Example[] = [
   { code: "R2-1", props: { speed: 45 } },
-  { code: "D3-1", props: { name: "Wyngate", suffix: "Dr" } },
+  {
+    code: "D3-1",
+    props: { name: "Wyngate", suffix: "Dr" },
+    multiline: true,
+  },
   {
     code: "R7-1",
     props: { lines: ["8:30 AM", "TO", "5:30 PM"], arrow: "right" },

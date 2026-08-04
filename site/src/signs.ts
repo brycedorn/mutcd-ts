@@ -1,8 +1,11 @@
 import { renderSVG, listSigns, SIGNS } from "mutcd-ts";
 import type { SignCode } from "mutcd-ts";
+import { initTheme } from "./theme";
+
+initTheme();
 
 document.getElementById("brand-title")!.innerHTML = renderSVG("D1-1", {
-  lines: [{ name: "mutcd-ts", arrow: "right" }],
+  lines: [{ name: "mutcd-ts", arrow: "left" }],
 });
 
 /** Options for union-typed props (runtime defaults can't express unions). */
@@ -116,7 +119,10 @@ function card(code: SignCode): HTMLElement {
       };
       input = txt;
     }
-    label.appendChild(input);
+    const inputSlot = document.createElement("span");
+    inputSlot.className = "control-input";
+    inputSlot.appendChild(input);
+    label.appendChild(inputSlot);
     controls.appendChild(label);
   }
 
