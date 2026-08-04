@@ -1,6 +1,6 @@
 {
   "name": "mutcd-ts",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Parametric US MUTCD road signs as SVG, faithful to the 2024 Standard Highway Signs.",
   "license": "MIT",
   "repository": {
