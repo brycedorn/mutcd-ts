@@ -1,4 +1,4 @@
-# mutcd-ts
+# <img src="./assets/mutcd-ts.svg" alt="mutcd-ts" width="250">
 
 [![npm version](https://img.shields.io/npm/v/mutcd-ts.svg)](https://www.npmjs.com/package/mutcd-ts)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
