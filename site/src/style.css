@@ -12,7 +12,6 @@
   --card-shadow: rgba(26, 33, 41, 0.09);
   --code-bg: #14181d;
   --sign-preview-filter: brightness(1) saturate(1);
-  --brand-shadow: drop-shadow(0 2px 5px rgba(26, 33, 41, 0.35));
   --green: #006747;
   --green-dark: #00543a;
   --red: #af1e2d;
@@ -118,13 +117,8 @@ figcaption code {
   display: block;
   width: 100%;
   height: 100%;
-  /* The soft shadow lifts the sign plate off the white nav in light mode. */
-  filter: var(--sign-preview-filter) var(--brand-shadow);
-  transition: filter 0.15s;
-}
-
-[data-theme="dark"] .brand-name svg {
   filter: var(--sign-preview-filter);
+  transition: filter 0.15s;
 }
 
 .nav-links {
@@ -179,6 +173,12 @@ figcaption code {
   padding: 0;
 }
 
+.theme-toggle,
+.contrast-toggle,
+.github-link {
+  -webkit-tap-highlight-color: transparent;
+}
+
 .theme-toggle:hover,
 .contrast-toggle:hover,
 .contrast-toggle[aria-pressed="true"] {
@@ -228,10 +228,6 @@ figcaption code {
 }
 
 @media (max-width: 640px) {
-  :root {
-    --brand-shadow: drop-shadow(0 1.5px 4px rgba(26, 33, 41, 0.35));
-  }
-
   .nav {
     padding: 8px 16px;
   }
@@ -403,9 +399,9 @@ figcaption code {
 
   .hero-stage {
     grid-row: 1;
-    min-height: 300px;
+    min-height: 340px;
     aspect-ratio: auto;
-    height: min(56vw, 420px);
+    height: min(64vw, 440px);
   }
 }
 
@@ -428,10 +424,6 @@ figcaption code {
   color: var(--ink-soft);
   margin: 0 0 28px;
   max-width: 60ch;
-}
-
-.request-link {
-  color: var(--ink);
 }
 
 .section-more {
@@ -560,7 +552,16 @@ figcaption code {
 }
 
 @media (max-width: 760px) {
-  .compare,
+  .compare {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .compare > :last-child {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: calc(50% - 7px);
+  }
+
   .compare-stats {
     grid-template-columns: 1fr;
   }
@@ -582,6 +583,10 @@ figcaption code {
 @media (max-width: 860px) {
   .playground {
     grid-template-columns: 1fr;
+  }
+
+  .playground-stage {
+    order: -1;
   }
 }
 
@@ -764,14 +769,25 @@ figcaption code {
   color: var(--ink);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 860px) {
   .footer-inner {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     gap: 14px;
     padding: 22px 16px 30px;
   }
 
+  .footer p {
+    max-width: 560px;
+    text-align: center;
+  }
+
+  .footer-links {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
   .hero,
   .section {
     padding-left: 16px;
@@ -1039,5 +1055,20 @@ figcaption code {
   .gallery-header {
     padding-left: 16px;
     padding-right: 16px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .card {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .stage {
+    min-height: 120px;
+    padding: 8px;
   }
 }

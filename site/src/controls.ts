@@ -23,7 +23,9 @@ export function propControls(
   const frag = document.createDocumentFragment();
   for (const [key, value] of Object.entries(props)) {
     const label = document.createElement("label");
-    label.textContent = key;
+    label.textContent = key
+      .replace(/([a-z])([A-Z])/g, "$1 $2")
+      .replace(/^./, (c) => c.toUpperCase());
     let input: HTMLElement;
     if (enums[key]) {
       const select = document.createElement("select");
