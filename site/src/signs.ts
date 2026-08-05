@@ -102,6 +102,15 @@ if (navSigns) {
   navSigns.onclick = intercept(navSigns);
 }
 
+// The brand and Home links ship as "../", which resolves one level too deep
+// once pushState moves the URL to signs/<CODE>; pin them to the site root.
+const homeHref = parseRoute().base.replace(/signs$/, "");
+for (const a of document.querySelectorAll<HTMLAnchorElement>(
+  '.brand, .nav-links a[href="../"]',
+)) {
+  a.href = homeHref;
+}
+
 // --- gallery (built once; hidden while a detail route is active) ---
 
 const byCategory = new Map<string, ReturnType<typeof listSigns>>();

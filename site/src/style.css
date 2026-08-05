@@ -924,6 +924,13 @@ a {
   margin: 0;
 }
 
+/* Headings receive programmatic focus on route changes (screen-reader
+   announcement); they're not tab-reachable, so hide the focus ring. */
+.detail-head h1:focus,
+.gallery-header h1:focus {
+  outline: none;
+}
+
 .detail-head h1 code {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   font-size: 19px;
