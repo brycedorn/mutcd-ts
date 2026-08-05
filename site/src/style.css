@@ -12,6 +12,7 @@
   --card-shadow: rgba(26, 33, 41, 0.09);
   --code-bg: #14181d;
   --sign-preview-filter: brightness(1) saturate(1);
+  --brand-shadow: drop-shadow(0 2px 5px rgba(26, 33, 41, 0.35));
   --green: #006747;
   --green-dark: #00543a;
   --red: #af1e2d;
@@ -104,8 +105,13 @@ a {
   display: block;
   width: 100%;
   height: 100%;
-  filter: var(--sign-preview-filter);
+  /* The soft shadow lifts the sign plate off the white nav in light mode. */
+  filter: var(--sign-preview-filter) var(--brand-shadow);
   transition: filter 0.15s;
+}
+
+[data-theme="dark"] .brand-name svg {
+  filter: var(--sign-preview-filter);
 }
 
 .nav-links {
@@ -178,14 +184,19 @@ a {
   stroke-width: 2;
 }
 
+/* Half-shaded circle: the shaded side flips to indicate the active state. */
 .contrast-toggle svg path {
   fill: currentColor;
   stroke: none;
-  opacity: 0;
 }
 
-.contrast-toggle[aria-pressed="true"] svg path {
-  opacity: 1;
+.contrast-toggle .half-left,
+.contrast-toggle[aria-pressed="true"] .half-right {
+  display: none;
+}
+
+.contrast-toggle[aria-pressed="true"] .half-left {
+  display: block;
 }
 
 .theme-toggle .icon-sun,
@@ -195,6 +206,67 @@ a {
 
 [data-theme="dark"] .theme-toggle .icon-sun {
   display: block;
+}
+
+@media (max-width: 1000px) {
+  .nav {
+    padding: 12px 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --brand-shadow: drop-shadow(0 1.5px 4px rgba(26, 33, 41, 0.35));
+  }
+
+  .nav {
+    padding: 8px 16px;
+  }
+
+  .brand-name {
+    width: 100px;
+    height: 30px;
+  }
+
+  .nav-links {
+    gap: 14px;
+    font-size: 14px;
+  }
+
+  .github-link,
+  .theme-toggle {
+    padding-left: 14px;
+  }
+
+  /* Comfortable tap targets without growing the bar. */
+  .theme-toggle,
+  .contrast-toggle,
+  .github-link {
+    padding-top: 8px;
+    padding-bottom: 8px;
+    margin: -8px 0;
+  }
+}
+
+/* Smallest phones: tighten gaps so the nav never overflows the viewport. */
+@media (max-width: 360px) {
+  .nav {
+    padding: 8px 12px;
+  }
+
+  .brand-name {
+    width: 88px;
+    height: 26.4px;
+  }
+
+  .nav-links {
+    gap: 10px;
+  }
+
+  .github-link,
+  .theme-toggle {
+    padding-left: 10px;
+  }
 }
 
 /* ---------- hero ---------- */
@@ -660,6 +732,21 @@ a {
   color: var(--ink);
 }
 
+@media (max-width: 640px) {
+  .footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 22px 16px 30px;
+  }
+
+  .hero,
+  .section {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
 .footer-links a::after {
   content: "";
   display: inline-block;
@@ -722,6 +809,7 @@ a {
   flex-direction: column;
   gap: 12px;
   transition: box-shadow 0.15s;
+  cursor: pointer;
 }
 
 .card:hover {
@@ -765,6 +853,14 @@ a {
   transition: filter 0.15s;
 }
 
+.card .controls {
+  cursor: auto;
+}
+
+.card-link {
+  color: var(--ink);
+}
+
 .controls {
   display: flex;
   flex-direction: column;
@@ -798,4 +894,111 @@ a {
 .control-input input[type="checkbox"] {
   display: block;
   margin-left: auto;
+}
+
+/* ---------- sign detail route ---------- */
+
+.back-link {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.back-link:hover {
+  color: var(--ink);
+}
+
+.detail-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 10px 0 20px;
+}
+
+.detail-head h1 {
+  font-size: 28px;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.detail-head h1 code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 19px;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 2px 10px;
+  margin-right: 12px;
+  vertical-align: 3px;
+}
+
+.detail-category {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-soft);
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.detail-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 460px;
+  background:
+    conic-gradient(var(--check-a) 90deg, var(--check-b) 90deg 180deg, var(--check-a) 180deg 270deg, var(--check-b) 270deg) 0 0 /
+    26px 26px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 36px;
+}
+
+.detail-stage svg {
+  max-width: 100%;
+  max-height: 480px;
+  width: auto;
+  height: auto;
+  filter: var(--sign-preview-filter) drop-shadow(0 4px 10px rgba(26, 33, 41, 0.14));
+  transition: filter 0.15s;
+}
+
+.detail-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detail-side .controls {
+  font-size: 13.5px;
+  gap: 8px;
+}
+
+@media (max-width: 860px) {
+  .detail-grid {
+    /* minmax(0, ...) so the sign's intrinsic width can't blow out the column */
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .detail-stage {
+    min-height: 320px;
+    padding: 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .gallery,
+  .gallery-header {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
 }

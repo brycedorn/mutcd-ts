@@ -2,6 +2,7 @@ import { renderSVG, SIGNS } from "mutcd-ts";
 import type { SignCode } from "mutcd-ts";
 import { startHeroAnimation } from "./hero";
 import { initTheme } from "./theme";
+import { propControls, exampleSource, ENUM_HINTS } from "./controls";
 
 initTheme();
 
@@ -44,7 +45,7 @@ const grid = document.getElementById("sign-grid")!;
 for (const code of PREVIEW) {
   const cell = document.createElement("a");
   cell.className = "sign-cell";
-  cell.href = "signs/";
+  cell.href = `signs/${code}`;
   cell.title = SIGNS[code].name;
   const art = document.createElement("div");
   art.className = "sign-cell-art";
@@ -98,24 +99,9 @@ exampleCopyBtn.onclick = async () => {
 
 let active = 0;
 
-function fmtValue(value: unknown): string {
-  if (typeof value === "string") return `<span class="tok-str">"${value}"</span>`;
-  if (typeof value === "number") return `<span class="tok-num">${value}</span>`;
-  if (Array.isArray(value)) return `[${value.map(fmtValue).join(", ")}]`;
-  return String(value);
-}
-
 function renderExample() {
   const ex = EXAMPLES[active]!;
-  const propEntries = Object.entries(ex.props).map(([k, v]) => `${k}: ${fmtValue(v)}`);
-  const propsSrc = ex.multiline
-    ? `{\n  ${propEntries.join(",\n  ")},\n}`
-    : `{ ${propEntries.join(", ")} }`;
-  codeEl.innerHTML =
-    `<span class="tok-kw">import</span> { renderSVG } ` +
-    `<span class="tok-kw">from</span> <span class="tok-str">"mutcd-ts"</span>;\n\n` +
-    `<span class="tok-kw">const</span> svg = <span class="tok-fn">renderSVG</span>` +
-    `(<span class="tok-str">"${ex.code}"</span>, ${propsSrc});`;
+  codeEl.innerHTML = exampleSource(ex.code, ex.props, ex.multiline ?? false);
   try {
     stageEl.innerHTML = renderSVG(ex.code, ex.props as never);
   } catch (err) {
@@ -126,59 +112,9 @@ function renderExample() {
 function renderControls() {
   const ex = EXAMPLES[active]!;
   controlsEl.innerHTML = "";
-  for (const [key, value] of Object.entries(ex.props)) {
-    const label = document.createElement("label");
-    label.textContent = key;
-    let input: HTMLElement;
-    if (ex.enums?.[key]) {
-      const select = document.createElement("select");
-      for (const opt of ex.enums[key]!) {
-        const o = document.createElement("option");
-        o.value = opt;
-        o.textContent = opt;
-        o.selected = opt === value;
-        select.appendChild(o);
-      }
-      select.onchange = () => {
-        ex.props[key] = select.value;
-        renderExample();
-      };
-      input = select;
-    } else if (typeof value === "number") {
-      const num = document.createElement("input");
-      num.type = "number";
-      num.value = String(value);
-      num.oninput = () => {
-        ex.props[key] = Number(num.value) || 0;
-        renderExample();
-      };
-      input = num;
-    } else if (Array.isArray(value)) {
-      const txt = document.createElement("input");
-      txt.type = "text";
-      txt.value = JSON.stringify(value);
-      txt.oninput = () => {
-        try {
-          ex.props[key] = JSON.parse(txt.value);
-          renderExample();
-        } catch {
-          // Ignore until the JSON parses.
-        }
-      };
-      input = txt;
-    } else {
-      const txt = document.createElement("input");
-      txt.type = "text";
-      txt.value = String(value);
-      txt.oninput = () => {
-        ex.props[key] = txt.value;
-        renderExample();
-      };
-      input = txt;
-    }
-    label.appendChild(input);
-    controlsEl.appendChild(label);
-  }
+  controlsEl.appendChild(
+    propControls(ex.props, renderExample, { ...ENUM_HINTS, ...ex.enums }),
+  );
 }
 
 for (let i = 0; i < EXAMPLES.length; i++) {

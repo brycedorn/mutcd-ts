@@ -29,7 +29,7 @@
       </a>
       <nav class="nav-links">
         <a href="./" aria-current="page">Home</a>
-        <a href="signs/">Signs</a>
+        <a href="signs">Signs</a>
         <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark mode">
           <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
@@ -49,7 +49,8 @@
         >
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="12" cy="12" r="9" />
-            <path d="M12 3a9 9 0 0 1 0 18Z" />
+            <path class="half-right" d="M12 3a9 9 0 0 1 0 18Z" />
+            <path class="half-left" d="M12 3a9 9 0 0 0 0 18Z" />
           </svg>
         </button>
         <a
@@ -84,7 +85,7 @@
             <button id="copy-install" type="button" aria-label="Copy install command">Copy</button>
           </div>
           <div class="cta">
-            <a class="btn btn-primary" href="signs/">Browse all signs</a>
+            <a class="btn btn-primary" href="signs">Browse all signs</a>
             <a
               class="btn"
               href="https://github.com/brycedorn/mutcd-ts#readme"
@@ -118,7 +119,7 @@
         </div>
         <div id="sign-grid" class="sign-grid"></div>
         <div class="section-more">
-          <a class="btn" href="signs/">View all signs &rarr;</a>
+          <a class="btn" href="signs">View all signs &rarr;</a>
         </div>
       </section>
 
@@ -157,15 +158,15 @@
         </div>
         <div class="compare">
           <figure class="compare-cell">
-            <img src="./compare/M1-1-ours.png" alt="M1-1 Interstate route shield rendered by mutcd-ts" loading="lazy" />
+            <img src="./compare/M1-1-ours.png" alt="M1-1 Interstate route shield rendered by mutcd-ts" width="600" height="600" loading="lazy" decoding="async" />
             <figcaption>mutcd-ts render</figcaption>
           </figure>
           <figure class="compare-cell">
-            <img src="./compare/M1-1-ref.png" alt="Official FHWA artwork for the M1-1 Interstate route shield" loading="lazy" />
+            <img src="./compare/M1-1-ref.png" alt="Official FHWA artwork for the M1-1 Interstate route shield" width="600" height="600" loading="lazy" decoding="async" />
             <figcaption>Official FHWA artwork</figcaption>
           </figure>
           <figure class="compare-cell">
-            <img src="./compare/M1-1-overlay.png" alt="Difference overlay for M1-1: fully gray, meaning every pixel matches" loading="lazy" />
+            <img src="./compare/M1-1-overlay.png" alt="Difference overlay for M1-1: fully gray, meaning every pixel matches" width="600" height="600" loading="lazy" decoding="async" />
             <figcaption>Difference overlay: 0.00% mismatch</figcaption>
           </figure>
         </div>

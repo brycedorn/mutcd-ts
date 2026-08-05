@@ -53,6 +53,8 @@ const DASH_LEN = 18;
 const DASH_GAP = 15;
 const PX_PER_INCH = 2.1; // sign face raster scale (display px)
 const RASTER_OVERSAMPLE = 2;
+// Backing-store cap: 3x phones pay 2.25x the pixels for no visible gain.
+const MAX_DPR = 2;
 
 const BELT_SPAN = 2 * (HALF_LEN + ROLL_R * THETA_HIDE); // one rider lap
 
@@ -199,10 +201,11 @@ export function startHeroAnimation(canvas: HTMLCanvasElement): void {
   let raf = 0;
   let start = performance.now();
   let backingDpr = 0;
+  const cache = createBgCache();
 
   const resize = (force = false): boolean => {
     const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
     const width = Math.max(1, Math.round(rect.width * dpr));
     const height = Math.max(1, Math.round(rect.height * dpr));
     if (width === canvas.width && height === canvas.height) return false;
@@ -224,14 +227,17 @@ export function startHeroAnimation(canvas: HTMLCanvasElement): void {
   const ro = new ResizeObserver(() => {
     if (!resize()) return;
     const now = reduceMotion ? 0 : performance.now();
-    draw(ctx, canvas, sprites, (now - start) / 1000);
+    draw(ctx, canvas, sprites, (now - start) / 1000, cache);
   });
   ro.observe(canvas);
 
+  let running = false;
+  let io: IntersectionObserver | null = null;
+
   function frame(now: number) {
     const t = (now - start) / 1000;
-    draw(ctx!, canvas, sprites, t);
-    if (!reduceMotion) raf = requestAnimationFrame(frame);
+    draw(ctx!, canvas, sprites, t, cache);
+    if (!reduceMotion && running) raf = requestAnimationFrame(frame);
   }
 
   if (reduceMotion) {
@@ -242,7 +248,22 @@ export function startHeroAnimation(canvas: HTMLCanvasElement): void {
       attributeFilter: ["data-theme", "data-sign-contrast"],
     });
   } else {
-    raf = requestAnimationFrame(frame);
+    // Animate only while the hero is on screen; shift the clock across pauses
+    // so the belt resumes where it left off instead of jumping ahead.
+    let pausedAt = performance.now();
+    io = new IntersectionObserver(([entry]) => {
+      const visible = !!entry?.isIntersecting;
+      if (visible && !running) {
+        start += performance.now() - pausedAt;
+        running = true;
+        raf = requestAnimationFrame(frame);
+      } else if (!visible && running) {
+        running = false;
+        pausedAt = performance.now();
+        cancelAnimationFrame(raf);
+      }
+    });
+    io.observe(canvas);
   }
 
   // Stop cleanly if the canvas leaves the DOM (vite HMR).
@@ -250,6 +271,7 @@ export function startHeroAnimation(canvas: HTMLCanvasElement): void {
     if (!canvas.isConnected) {
       cancelAnimationFrame(raf);
       ro.disconnect();
+      io?.disconnect();
     }
   }).observe(document.body, { childList: true, subtree: true });
 }
@@ -262,26 +284,17 @@ type Rider = {
   idx: number;
 };
 
-function draw(
-  ctx: CanvasRenderingContext2D,
-  canvas: HTMLCanvasElement,
-  sprites: SpriteMap,
-  t: number,
-) {
-  const dpr = window.devicePixelRatio || 1;
-  const w = canvas.width / dpr;
-  const h = canvas.height / dpr;
-  const dark = document.documentElement.dataset.theme === "dark";
-  const reducedContrast = document.documentElement.dataset.signContrast === "reduced";
-  const grass = dark ? C_SAND_SUNSET : C_SAND;
-  const grassSide = dark ? C_SAND_SIDE_SUNSET : C_SAND_SIDE;
-  const road = dark ? C_ROAD_NIGHT : C_ROAD;
-  ctx.save();
-  ctx.scale(dpr, dpr);
-  ctx.clearRect(0, 0, w, h);
+type Proj = {
+  scale: number;
+  cx: number;
+  cy: number;
+  P: (a: number, b: number) => [number, number];
+  Q: (s: number, b: number) => [number, number];
+};
 
-  // Keep headroom above the belt for tall signs at the far roller, and room
-  // below for the belt body and riders wrapping under the near roller.
+/** Projection for a css-pixel viewport: iso basis scaled and centered, with
+ * headroom above the belt for tall signs and room below for the wraps. */
+function makeProj(w: number, h: number): Proj {
   const scale = Math.min(w / 470, h / 470) * 0.7;
   const cx = w / 2;
   const cy = h / 2 + 40 * scale;
@@ -294,11 +307,77 @@ function draw(
     const [x, y] = P(c.a, b);
     return [x, y + c.drop * scale];
   };
+  return { scale, cx, cy, P, Q };
+}
+
+type BgCache = { key: string; bg1: HTMLCanvasElement; bg2: HTMLCanvasElement };
+
+function createBgCache(): BgCache {
+  return {
+    key: "",
+    bg1: document.createElement("canvas"),
+    bg2: document.createElement("canvas"),
+  };
+}
+
+// Smooth band of belt surface between belt coords s0..s1 and lanes b0..b1,
+// sampled finely so the roller curve renders without banding.
+function bandPath(
+  ctx: CanvasRenderingContext2D,
+  Q: Proj["Q"],
+  s0: number,
+  s1: number,
+  b0: number,
+  b1: number,
+) {
+  const n = Math.max(2, Math.ceil(Math.abs(s1 - s0) / 3));
+  ctx.beginPath();
+  for (let i = 0; i <= n; i++) {
+    const [x, y] = Q(s0 + ((s1 - s0) * i) / n, b0);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  for (let i = n; i >= 0; i--) {
+    const [x, y] = Q(s0 + ((s1 - s0) * i) / n, b1);
+    ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+}
+
+/**
+ * Everything that doesn't move, rendered once per size/theme into two layers:
+ * bg1 is the ground (grid + ambient shadow) behind the emerging riders, bg2
+ * is the belt that occludes them. Rebuilding these gradients and sampled
+ * paths every frame is what made mobile scrolling stutter.
+ */
+function renderStaticLayers(
+  cache: BgCache,
+  pxW: number,
+  pxH: number,
+  dpr: number,
+  proj: Proj,
+  dark: boolean,
+) {
+  const { scale, cx, cy, P, Q } = proj;
+  const w = pxW / dpr;
+  const h = pxH / dpr;
+  const grass = dark ? C_SAND_SUNSET : C_SAND;
+  const grassSide = dark ? C_SAND_SIDE_SUNSET : C_SAND_SIDE;
+  const road = dark ? C_ROAD_NIGHT : C_ROAD;
   const groundY = ROLL_R * scale;
 
-  // 0. Developer-mode ground grid: an iso grid plane the treadmill sits on,
-  //    fading out radially at the edges (lucide.dev-style hero backdrop).
+  const layer = (c: HTMLCanvasElement): CanvasRenderingContext2D => {
+    c.width = pxW;
+    c.height = pxH;
+    const lctx = c.getContext("2d")!;
+    lctx.scale(dpr, dpr);
+    return lctx;
+  };
+
+  // --- bg1: developer-mode ground grid + ambient belt shadow ---
   {
+    const ctx = layer(cache.bg1);
+
     // Grid plane passes through the roller axles: the treadmill reads as
     // sliced in half by the floor, each wrap meeting the ground flush.
     const step = 42;
@@ -319,7 +398,7 @@ function draw(
       ctx.lineTo(x1, y1 + groundY);
     }
     ctx.stroke();
-    // Fade the grid (the only thing on the canvas so far) with an elliptical
+    // Fade the grid (the only thing on this layer so far) with an elliptical
     // mask centered under the belt.
     ctx.save();
     ctx.globalCompositeOperation = "destination-in";
@@ -332,14 +411,10 @@ function draw(
     ctx.fillStyle = g;
     ctx.fillRect(-w * 2, -h * 2, w * 4, h * 4);
     ctx.restore();
-  }
 
-  // Soft ambient shadow from the belt footprint onto the ground plane,
-  // spread a little beyond the body so a visible fringe hugs the base.
-  // The quad is drawn off-screen and only its blurred shadow is offset back
-  // into place, so there is no hard fill edge anywhere.
-  {
-    const groundY = ROLL_R * scale;
+    // Soft ambient shadow from the belt footprint onto the ground plane.
+    // The quad is drawn off-screen and only its blurred shadow is offset back
+    // into place, so there is no hard fill edge anywhere.
     const m = 0; // no spread: the blur alone hugs the base (no halo)
     const aEnd = HALF_LEN + ROLL_R + m;
     const off = 10_000; // off-screen displacement (shadow offsets ignore CTM)
@@ -364,10 +439,118 @@ function draw(
     ctx.restore();
   }
 
+  // --- bg2: the belt (both roller wraps, side face, flat top) ---
+  {
+    const ctx = layer(cache.bg2);
+
+    // One roller wrap (dir +1 = near, -1 = far): surface bands shaded by a
+    // smooth gradient from lit flat to the shadowed ground contact.
+    const drawRoll = (dir: 1 | -1) => {
+      // Near roller wraps a quarter turn down to the grid plane; the far
+      // roller stops at its crest (nothing behind the silhouette is visible).
+      const sFlat = dir * (HALF_LEN - 1);
+      const sTerm = dir * (dir === 1 ? S_END : S_CREST);
+      // Only the near wrap darkens toward the ground; the far lip (where
+      // signs first appear) stays fully lit.
+      const endF = dir === 1 ? 0.7 : 1;
+      const bands: [number, number, RGB, number][] = [
+        [-HALF_WID, HALF_WID, grass, 1],
+        [-ROAD_HALF, ROAD_HALF, road, 1],
+        [-(ROAD_HALF - 7) - 1.5, -(ROAD_HALF - 7) + 1.5, C_EDGE, 0.85],
+        [ROAD_HALF - 7 - 1.5, ROAD_HALF - 7 + 1.5, C_EDGE, 0.85],
+      ];
+      const [gx0, gy0] = Q(dir * HALF_LEN, 0);
+      const [gx1, gy1] = Q(sTerm, 0);
+      for (const [b0, b1, color, alpha] of bands) {
+        const g = ctx.createLinearGradient(gx0, gy0, gx1, gy1);
+        const shadeRange = 1 - endF;
+        g.addColorStop(0, shade(color, 1, alpha));
+        g.addColorStop(0.2, shade(color, 1 - shadeRange * 0.104, alpha));
+        g.addColorStop(0.4, shade(color, 1 - shadeRange * 0.352, alpha));
+        g.addColorStop(0.6, shade(color, 1 - shadeRange * 0.648, alpha));
+        g.addColorStop(0.8, shade(color, 1 - shadeRange * 0.896, alpha));
+        g.addColorStop(1, shade(color, endF, alpha));
+        ctx.fillStyle = g;
+        bandPath(ctx, Q, sFlat, sTerm, b0, b1);
+        ctx.fill();
+      }
+    };
+
+    // Far roller wrap first (occludes emerging riders drawn beneath bg2).
+    drawRoll(-1);
+
+    // Belt side face: the cut face of the half-sliced body at b = +HALF_WID,
+    // from the belt's top edge down to the ground line. Sampling the full
+    // wrap at both ends traces the rollers' half-disc end caps, so each end
+    // meets the grid flush; closePath is the straight ground-level edge.
+    ctx.fillStyle = shade(grassSide, 1);
+    ctx.beginPath();
+    for (let s = -S_END; s < S_END; s += 6) {
+      const [x, y] = Q(s, HALF_WID);
+      if (s === -S_END) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    const [xEnd, yEnd] = Q(S_END, HALF_WID);
+    ctx.lineTo(xEnd, yEnd);
+    ctx.closePath();
+    ctx.fill();
+
+    // Flat top: grass, road, edge lines.
+    poly(ctx, shade(grass, 1), [
+      P(-HALF_LEN, -HALF_WID),
+      P(-HALF_LEN, HALF_WID),
+      P(HALF_LEN, HALF_WID),
+      P(HALF_LEN, -HALF_WID),
+    ]);
+    poly(ctx, shade(road, 1), [
+      P(-HALF_LEN, -ROAD_HALF),
+      P(-HALF_LEN, ROAD_HALF),
+      P(HALF_LEN, ROAD_HALF),
+      P(HALF_LEN, -ROAD_HALF),
+    ]);
+    for (const b of [-(ROAD_HALF - 7), ROAD_HALF - 7]) {
+      poly(ctx, shade(C_EDGE, 1, 0.85), [
+        P(-HALF_LEN, b - 1.5),
+        P(-HALF_LEN, b + 1.5),
+        P(HALF_LEN, b + 1.5),
+        P(HALF_LEN, b - 1.5),
+      ]);
+    }
+    drawRoll(1);
+  }
+}
+
+function draw(
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  sprites: SpriteMap,
+  t: number,
+  cache: BgCache,
+) {
+  const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+  const w = canvas.width / dpr;
+  const h = canvas.height / dpr;
+  const dark = document.documentElement.dataset.theme === "dark";
+  const reducedContrast = document.documentElement.dataset.signContrast === "reduced";
+  const proj = makeProj(w, h);
+  const { scale, Q } = proj;
+
+  const key = `${canvas.width}|${canvas.height}|${dark}`;
+  if (cache.key !== key) {
+    renderStaticLayers(cache, canvas.width, canvas.height, dpr, proj, dark);
+    cache.key = key;
+  }
+
+  ctx.save();
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, h);
+
+  // 0. Ground plane (grid + ambient shadow), cached.
+  ctx.drawImage(cache.bg1, 0, 0, w, h);
+
   const dist = t * SPEED;
   const period = DASH_LEN + DASH_GAP;
   const offset = ((dist % period) + period) % period;
-  const dashOn = (s: number) => mod(s + HALF_LEN - offset, period) < DASH_LEN;
 
   // --- riders (signs + plants) at belt coordinates ---
   const riders: Rider[] = [];
@@ -431,100 +614,13 @@ function draw(
     ctx.restore();
   };
 
-  // Smooth band of belt surface between belt coords s0..s1 and lanes b0..b1,
-  // sampled finely so the roller curve renders without banding.
-  const bandPath = (s0: number, s1: number, b0: number, b1: number) => {
-    const n = Math.max(2, Math.ceil(Math.abs(s1 - s0) / 3));
-    ctx.beginPath();
-    for (let i = 0; i <= n; i++) {
-      const [x, y] = Q(s0 + ((s1 - s0) * i) / n, b0);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    for (let i = n; i >= 0; i--) {
-      const [x, y] = Q(s0 + ((s1 - s0) * i) / n, b1);
-      ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-  };
-
-  // One roller wrap (dir +1 = near, -1 = far): surface bands shaded by a
-  // smooth gradient from lit flat to the shadowed ground contact.
-  const drawRoll = (dir: 1 | -1) => {
-    // Near roller wraps a quarter turn down to the grid plane; the far roller
-    // stops at its crest (nothing behind the silhouette is visible).
-    const sFlat = dir * (HALF_LEN - 1);
-    const sTerm = dir * (dir === 1 ? S_END : S_CREST);
-    // Only the near wrap darkens toward the ground; the far lip (where signs
-    // first appear) stays fully lit.
-    const endF = dir === 1 ? 0.7 : 1;
-    const bands: [number, number, RGB, number][] = [
-      [-HALF_WID, HALF_WID, grass, 1],
-      [-ROAD_HALF, ROAD_HALF, road, 1],
-      [-(ROAD_HALF - 7) - 1.5, -(ROAD_HALF - 7) + 1.5, C_EDGE, 0.85],
-      [ROAD_HALF - 7 - 1.5, ROAD_HALF - 7 + 1.5, C_EDGE, 0.85],
-    ];
-    const [gx0, gy0] = Q(dir * HALF_LEN, 0);
-    const [gx1, gy1] = Q(sTerm, 0);
-    for (const [b0, b1, color, alpha] of bands) {
-      const g = ctx.createLinearGradient(gx0, gy0, gx1, gy1);
-      const shadeRange = 1 - endF;
-      g.addColorStop(0, shade(color, 1, alpha));
-      g.addColorStop(0.2, shade(color, 1 - shadeRange * 0.104, alpha));
-      g.addColorStop(0.4, shade(color, 1 - shadeRange * 0.352, alpha));
-      g.addColorStop(0.6, shade(color, 1 - shadeRange * 0.648, alpha));
-      g.addColorStop(0.8, shade(color, 1 - shadeRange * 0.896, alpha));
-      g.addColorStop(1, shade(color, endF, alpha));
-      ctx.fillStyle = g;
-      bandPath(sFlat, sTerm, b0, b1);
-      ctx.fill();
-    }
-  };
-
   // 1. Far roller: emerging riders draw first so the belt lip occludes them.
   const farBehind = riders.filter((r) => r.zone === -1 && r.theta >= 0.5);
   farBehind.sort((a, b) => b.theta - a.theta);
   for (const r of farBehind) drawRider(r);
-  drawRoll(-1);
 
-  // 2. Belt side face: the cut face of the half-sliced body at b = +HALF_WID,
-  //    from the belt's top edge down to the ground line. Sampling the full
-  //    wrap at both ends traces the rollers' half-disc end caps, so each end
-  //    meets the grid flush; closePath is the straight ground-level edge.
-  ctx.fillStyle = shade(grassSide, 1);
-  ctx.beginPath();
-  for (let s = -S_END; s < S_END; s += 6) {
-    const [x, y] = Q(s, HALF_WID);
-    if (s === -S_END) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  const [xEnd, yEnd] = Q(S_END, HALF_WID);
-  ctx.lineTo(xEnd, yEnd);
-  ctx.closePath();
-  ctx.fill();
-
-  // 3. Flat top: grass, road, edge lines, scrolling dashes.
-  poly(ctx, shade(grass, 1), [
-    P(-HALF_LEN, -HALF_WID),
-    P(-HALF_LEN, HALF_WID),
-    P(HALF_LEN, HALF_WID),
-    P(HALF_LEN, -HALF_WID),
-  ]);
-  poly(ctx, shade(road, 1), [
-    P(-HALF_LEN, -ROAD_HALF),
-    P(-HALF_LEN, ROAD_HALF),
-    P(HALF_LEN, ROAD_HALF),
-    P(HALF_LEN, -ROAD_HALF),
-  ]);
-  for (const b of [-(ROAD_HALF - 7), ROAD_HALF - 7]) {
-    poly(ctx, shade(C_EDGE, 1, 0.85), [
-      P(-HALF_LEN, b - 1.5),
-      P(-HALF_LEN, b + 1.5),
-      P(HALF_LEN, b + 1.5),
-      P(HALF_LEN, b - 1.5),
-    ]);
-  }
-  drawRoll(1);
+  // 2-3. The belt (wraps, side face, flat top), cached.
+  ctx.drawImage(cache.bg2, 0, 0, w, h);
 
   // Center dashes ride the belt over both curves; they dim with the curve
   // shading and dissolve as they reach the terminal edges.
@@ -537,7 +633,7 @@ function draw(
     const f = 0.45 + 0.55 * Math.max(0, Math.cos(wrap));
     const fade = Math.max(0, Math.min(1, (S_END - Math.abs(mid)) / 28));
     ctx.fillStyle = shade(C_DASH, f, fade);
-    bandPath(s0, s1, -1.8, 1.8);
+    bandPath(ctx, Q, s0, s1, -1.8, 1.8);
     ctx.fill();
   }
 
