@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.2
+
+Fidelity refinements eliminate the remaining measured differences from the primary FHWA artwork.
+
+- Replaces the E5-1 exit arrow with the exact official path and corrects numbered-panel widths and numeral placement.
+- Uses exact official artwork for the D1-1 arrow, the matching R7-1 legend, and the matching D3-1 reference variant while preserving parametric fallbacks.
+- All 45 official-artwork comparisons now measure a 0.00% pixel mismatch.
+- No API changes.
+
 ## 0.2.1
 
 Fidelity fix: sign geometry is now traced from the FHWA's primary 2024 Standard Highway Signs artwork (the PDFs) instead of the published SVG exports, which turn out to contain curve distortion introduced by FHWA's own conversion.

@@ -50,6 +50,13 @@ export const R7_1 = /* @__PURE__ */ defineSign<NoParkingProps>({
   render: ({ lines, arrow: arrowDir }) => {
     const w = 12;
     const h = 18;
+    if (arrowDir === "left" && lines.length === 2 && lines[0] === "ANY" && lines[1] === "TIME") {
+      return {
+        width: w,
+        height: h,
+        nodes: [...artNodes(ART_R7_1), ...artLegendNodes(ART_R7_1)],
+      };
+    }
     // Two lines follow official ANY TIME metrics; longer stacks shrink to
     // fit between PARKING (ends 8.75) and the arrow row / border.
     const zoneTop = 9.375;

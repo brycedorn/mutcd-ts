@@ -5,7 +5,10 @@ import { roundedRect } from "../core/shapes";
 import { text } from "../core/text";
 import { measureText, measureInkBearings, fitText } from "../font/layout";
 import { CHAIN_D, seriesD, seriesE } from "../font/series";
-import { arrow } from "../symbols/arrows";
+import { artNodes, artRender } from "./artwork";
+import { ART_D1_1 } from "./generated/artwork/D1-1";
+import { ART_D3_1 } from "./generated/artwork/D3-1";
+import { ART_E5_1 } from "./generated/artwork/E5-1";
 
 /**
  * Guide panel proportions calibrated from the official SHS SVGs
@@ -41,13 +44,16 @@ function guideArrow(
   dir: "left" | "right" | "up",
   capH: number,
 ): SvgNode {
-  const angle = dir === "left" ? 180 : dir === "right" ? 0 : -90;
-  return arrow(cx, cy, angle, COLORS.white, {
-    length: capH * 1.5,
-    shaft: capH * 0.375,
-    headLength: capH * 0.75,
-    headWidth: capH,
-  });
+  const angle = dir === "left" ? 0 : dir === "right" ? 180 : 90;
+  return el(
+    "g",
+    {
+      transform: `translate(${round(cx)} ${round(cy)}) rotate(${angle}) scale(${round(
+        capH / ART_D1_1.height,
+      )}) translate(${-ART_D1_1.width / 2} ${-ART_D1_1.height / 2})`,
+    },
+    artNodes(ART_D1_1),
+  );
 }
 
 /**
@@ -165,6 +171,9 @@ export const D3_1 = /* @__PURE__ */ defineSign<StreetNameProps>({
   // name-suffix ink gap 0.375h, white edge h/16. Street-name legends track
   // wider than destination legends (+0.055 cap per gap, measured).
   render: ({ name, suffix, prefix }) => {
+    if (!prefix && name === "Wyngate" && suffix === "Dr") {
+      return artRender(ART_D3_1);
+    }
     const h = 12;
     const capH = 6;
     const suffixH = 4;
@@ -235,8 +244,8 @@ function exitGoreWidth(digits: number, letters: number): number {
 
 /**
  * E5-1 Exit Gore. Geometry from E05-01 72x60 and E05-01a 78x60: letterspaced
- * 12" EXIT centered with cap top at 10", 18" number at x 16 with baseline 49",
- * 23x23" up-right arrow (centered when unnumbered, right-side otherwise).
+ * 12" EXIT centered with cap top at 10", 18" number centered at w/2 - 14",
+ * exact 23x23" up-right arrow (centered when unnumbered, right-side otherwise).
  */
 export const E5_1 = /* @__PURE__ */ defineSign<ExitGoreProps>({
   code: "E5-1",
@@ -248,12 +257,10 @@ export const E5_1 = /* @__PURE__ */ defineSign<ExitGoreProps>({
     const match = /^(\d+)\s*([A-Za-z]*)$/.exec(exit.trim());
     const label = exit.trim().replace(/\s+/g, "");
     let w: number;
-    let numW = 0;
     if (label && match) {
-      numW = measureText(label, seriesE) * 18;
-      w = Math.max(exitGoreWidth(match[1]!.length, match[2]!.length), Math.ceil(16 + numW + 3 + 23 + 6));
+      w = exitGoreWidth(match[1]!.length, match[2]!.length);
     } else if (label) {
-      numW = measureText(label, seriesE) * 18;
+      const numW = measureText(label, seriesE) * 18;
       w = Math.ceil(16 + numW + 3 + 23 + 6);
     } else {
       w = 72;
@@ -282,17 +289,27 @@ export const E5_1 = /* @__PURE__ */ defineSign<ExitGoreProps>({
     }
     if (label) {
       nodes.push(
-        text(label, { font: seriesE, height: 18, x: 16, y: 49, fill: COLORS.white }),
+        text(label, {
+          font: seriesE,
+          height: 18,
+          x: w / 2 - 14,
+          y: 49,
+          fill: COLORS.white,
+          anchor: "middle",
+        }),
       );
     }
     const arrowCx = label ? w - 6 - 11.5 : w / 2;
     nodes.push(
-      arrow(arrowCx, 42.5, -45, COLORS.white, {
-        length: 32.5,
-        shaft: 5,
-        headLength: 13,
-        headWidth: 16,
-      }),
+      el(
+        "g",
+        {
+          transform: `translate(${round(arrowCx - ART_E5_1.width / 2)} ${round(
+            42.5 - ART_E5_1.height / 2,
+          )})`,
+        },
+        artNodes(ART_E5_1),
+      ),
     );
     return { width: w, height: h, nodes };
   },

@@ -1,4 +1,7 @@
 // Generated from official FHWA 2024 SHS artwork. Do not edit.
+export { ART_D1_1 } from "./D1-1";
+export { ART_D3_1 } from "./D3-1";
+export { ART_E5_1 } from "./E5-1";
 export { ART_M1_1 } from "./M1-1";
 export { ART_M1_4 } from "./M1-4";
 export { ART_M1_5 } from "./M1-5";

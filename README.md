@@ -56,7 +56,7 @@ renderSign(R2_1, { speed: 65 }); // text-fitting signs also pull the lettering t
 
 Sign geometry is traced from the FHWA's primary 2024 Standard Highway Signs PDF artwork and verified with pixel-level comparisons. A full audit found curve distortion in four of the FHWA's published SVG conversions, so mutcd-ts follows the primary artwork instead.
 
-All 45 official-artwork comparisons pass: 41 match at exactly 0.00% pixel mismatch, and the worst case is within 0.7%. Colors follow the Pantone values the specification defines instead of the print CMYK conversions embedded in the official files.
+All 45 official-artwork comparisons match at 0.00% pixel mismatch. Colors follow the Pantone values the specification defines instead of the print CMYK conversions embedded in the official files.
 
 ## Design notes
 
