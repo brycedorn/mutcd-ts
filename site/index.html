@@ -75,7 +75,10 @@
         <div class="hero-copy">
           <h1>US road signs,<br />rendered from code.</h1>
           <p class="lede">
-            Parametric signs from the Manual on Uniform Traffic Control Devices
+            Parametric signs from the
+            <a href="https://mutcd.fhwa.dot.gov/" target="_blank" rel="noopener"
+              >Manual on Uniform Traffic Control Devices</a
+            >
             (MUTCD), rendered as crisp SVG and faithful to the official 2024
             standard. Typed props, deterministic output, and zero
             runtime dependencies. Ready for three.js textures, maps, and simulation.
@@ -148,26 +151,46 @@
         <div class="section-head">
           <h2>Measured against the rulebook</h2>
           <p>
-            Sign geometry is traced from the official FHWA 2024 Standard
-            Highway Signs artwork, and every template is verified with a
-            pixel-level diff.
-            The slight hue difference is expected: official files use
-            print CMYK conversions while mutcd-ts uses the Pantone colors the
-            spec defines.
+            Sign geometry is traced from the Federal Highway Administration's (FHWA) 2024 
+            Standard Highway Signs artwork, and every template is verified
+            with a pixel-level diff. That makes <code>mutcd-ts</code> more faithful than
+            even the SVG files published by FHWA, some of which have distortion.
+          </p>
+          <p>
+            For example, zoom into the Stop sign's <b>S</b> below and see the official SVG has a
+            distorted shoulder whereas the primary artwork curves smoothly;
+            <code>mutcd-ts</code> matches the latter exactly. The
+            slight color differences are expected: official files use print CMYK
+            conversions while <code>mutcd-ts</code> uses the Pantone colors
+            the spec defines.
           </p>
         </div>
         <div class="compare">
           <figure class="compare-cell">
-            <img src="./compare/M1-1-ours.png" alt="M1-1 Interstate route shield rendered by mutcd-ts" width="600" height="600" loading="lazy" decoding="async" />
-            <figcaption>mutcd-ts render</figcaption>
+            <img src="./compare/R1-1-svg.png" alt="FHWA's published SVG conversion of the R1-1 Stop sign" width="600" height="600" loading="lazy" decoding="async" />
+            <figcaption>FHWA's published SVG</figcaption>
           </figure>
           <figure class="compare-cell">
-            <img src="./compare/M1-1-ref.png" alt="Official FHWA artwork for the M1-1 Interstate route shield" width="600" height="600" loading="lazy" decoding="async" />
-            <figcaption>Official FHWA artwork</figcaption>
+            <img src="./compare/R1-1-ref.png" alt="Official FHWA primary artwork for the R1-1 Stop sign" width="600" height="600" loading="lazy" decoding="async" />
+            <figcaption>Official FHWA artwork (PDF)</figcaption>
           </figure>
           <figure class="compare-cell">
-            <img src="./compare/M1-1-overlay.png" alt="Difference overlay for M1-1: fully gray, meaning every pixel matches" width="600" height="600" loading="lazy" decoding="async" />
-            <figcaption>Difference overlay: 0.00% mismatch</figcaption>
+            <img src="./compare/R1-1-ours.png" alt="R1-1 Stop sign rendered by mutcd-ts" width="600" height="600" loading="lazy" decoding="async" />
+            <figcaption><code>mutcd-ts</code> render</figcaption>
+          </figure>
+        </div>
+        <div class="compare compare-zoom">
+          <figure class="compare-cell">
+            <img src="./compare/R1-1-zoom-svg.png" alt="Zoom of the Stop sign's S in FHWA's published SVG, showing a flattened, boxy upper-left shoulder" width="600" height="480" loading="lazy" decoding="async" />
+            <figcaption>FHWA's published SVG: boxy S shoulder</figcaption>
+          </figure>
+          <figure class="compare-cell">
+            <img src="./compare/R1-1-zoom-pdf.png" alt="Zoom of the Stop sign's S in the primary PDF artwork, showing the correct round shoulder" width="600" height="480" loading="lazy" decoding="async" />
+            <figcaption>Primary PDF artwork: round shoulder</figcaption>
+          </figure>
+          <figure class="compare-cell">
+            <img src="./compare/R1-1-zoom-diff.png" alt="Pixel diff between the published SVG and the primary PDF: an orange sliver marks where the SVG deviates" width="600" height="480" loading="lazy" decoding="async" />
+            <figcaption>Pixel diff: orange = SVG deviates from PDF</figcaption>
           </figure>
         </div>
         <div class="compare-stats">
