@@ -2,7 +2,12 @@ import { renderSVG, SIGNS } from "mutcd-ts";
 import type { SignCode } from "mutcd-ts";
 import { startHeroAnimation } from "./hero";
 import { initTheme } from "./theme";
-import { propControls, exampleSource, ENUM_HINTS } from "./controls";
+import {
+  propControls,
+  exampleSource,
+  wireEditableExample,
+  ENUM_HINTS,
+} from "./controls";
 
 initTheme();
 
@@ -99,15 +104,36 @@ exampleCopyBtn.onclick = async () => {
 
 let active = 0;
 
-function renderExample() {
+function renderStage() {
   const ex = EXAMPLES[active]!;
-  codeEl.innerHTML = exampleSource(ex.code, ex.props, ex.multiline ?? false);
   try {
     stageEl.innerHTML = renderSVG(ex.code, ex.props as never);
   } catch (err) {
     stageEl.textContent = String(err);
   }
 }
+
+function exampleCode(): string {
+  const ex = EXAMPLES[active]!;
+  return exampleSource(ex.code, ex.props, ex.multiline ?? false);
+}
+
+function renderExample() {
+  codeEl.innerHTML = exampleCode();
+  renderStage();
+}
+
+codeEl.setAttribute("aria-label", "Editable renderSVG example");
+wireEditableExample({
+  codeEl,
+  code: () => EXAMPLES[active]!.code,
+  props: () => EXAMPLES[active]!.props,
+  normalize: exampleCode,
+  onApply: () => {
+    renderStage();
+    renderControls();
+  },
+});
 
 function renderControls() {
   const ex = EXAMPLES[active]!;

@@ -601,10 +601,19 @@ a {
   padding: 18px 72px 18px 20px;
   margin: 0;
   max-width: 100%;
-  overflow-x: auto;
+  /* Soft-wrap instead of scrolling; the formatter keeps lines short anyway. */
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   font-size: 13.5px;
   line-height: 1.6;
+}
+
+.codeblock code[contenteditable] {
+  display: block;
+  cursor: text;
+  caret-color: #e6edf3;
+  outline: none;
 }
 
 .code-copy {

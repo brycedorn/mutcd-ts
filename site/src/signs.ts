@@ -1,7 +1,7 @@
 import { renderSVG, listSigns, SIGNS } from "mutcd-ts";
 import type { SignCode } from "mutcd-ts";
 import { initTheme } from "./theme";
-import { propControls, exampleSource } from "./controls";
+import { propControls, exampleSource, wireEditableExample } from "./controls";
 
 initTheme();
 
@@ -216,6 +216,7 @@ function buildDetail(code: SignCode): void {
   const pre = document.createElement("pre");
   pre.className = "codeblock";
   const codeEl = document.createElement("code");
+  codeEl.setAttribute("aria-label", `Editable renderSVG example for ${code}`);
   pre.appendChild(codeEl);
   const copy = document.createElement("button");
   copy.type = "button";
@@ -228,17 +229,37 @@ function buildDetail(code: SignCode): void {
   };
   wrap.append(pre, copy);
 
-  const update = () => {
+  const renderStage = () => {
     try {
       stage.innerHTML = renderSVG(code, props as never);
     } catch (err) {
       stage.textContent = String(err);
     }
+  };
+
+  // From the prop inputs: re-render and rewrite the (unfocused) code block.
+  const update = () => {
+    renderStage();
     codeEl.innerHTML = exampleSource(code, props);
   };
 
+  let controls = controlsBox(props, update);
+
+  wireEditableExample({
+    codeEl,
+    code: () => code,
+    props: () => props,
+    normalize: () => exampleSource(code, props),
+    onApply: () => {
+      renderStage();
+      const fresh = controlsBox(props, update);
+      controls.replaceWith(fresh);
+      controls = fresh;
+    },
+  });
+
   side.appendChild(wrap);
-  side.appendChild(controlsBox(props, update));
+  side.appendChild(controls);
   detailEl.append(back, head, grid);
   update();
 }
