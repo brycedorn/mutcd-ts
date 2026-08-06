@@ -52,7 +52,7 @@ renderSign(R1_1);                // ~1.3 KB gzipped in your bundle
 renderSign(R2_1, { speed: 65 }); // text-fitting signs also pull the lettering they use
 ```
 
-## Accuracy
+## Geometry
 
 Sign geometry is traced from the FHWA's primary 2024 Standard Highway Signs PDF artwork and verified with pixel-level comparisons. A full audit found curve distortion in four of the FHWA's published SVG conversions, so mutcd-ts follows the primary artwork instead.
 
