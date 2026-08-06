@@ -30,6 +30,7 @@
       <nav class="nav-links">
         <a href="../">Home</a>
         <a href="./" aria-current="page">Signs</a>
+        <a href="../fidelity/">Fidelity</a>
         <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark mode">
           <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
@@ -70,13 +71,30 @@
       </nav>
     </header>
 
-    <div class="gallery-header">
+    <header class="gallery-header">
+      <p class="eyebrow">Sign catalog</p>
       <h1>All signs</h1>
-      <p>
-        Every template renders live from parametric props. Adjust values to see
-        the layout engine re-fit text and symbols.
+      <p class="gallery-lede">
+        Explore all 47 templates across regulatory, warning, guide, route
+        marker, and school signs. Every example renders live from typed props,
+        so you can adjust values and watch the layout engine re-fit text and
+        symbols.
       </p>
-    </div>
+      <form class="gallery-search" id="sign-search-form" role="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-4-4" />
+        </svg>
+        <input
+          id="sign-search"
+          type="text"
+          aria-label="Search signs by code or name"
+          placeholder="Search by code or name"
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </form>
+    </header>
 
     <main id="app" class="gallery"></main>
 

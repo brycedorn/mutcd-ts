@@ -30,6 +30,7 @@
       <nav class="nav-links">
         <a href="./" aria-current="page">Home</a>
         <a href="signs">Signs</a>
+        <a href="fidelity/">Fidelity</a>
         <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark mode">
           <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
@@ -151,33 +152,11 @@
         <div class="section-head">
           <h2>Measured against the rulebook</h2>
           <p>
-            Sign geometry is traced from the Federal Highway Administration's (FHWA) 2024 
-            Standard Highway Signs artwork, and every template is verified
-            with a pixel-level diff. That makes <code>mutcd-ts</code> more faithful than
-            even the SVG files published by FHWA, some of which have distortion.
+            Pixel-level verification found four places where FHWA's published
+            SVG exports differ from the primary PDF artwork.
+            <code>mutcd-ts</code> corrects each conversion defect and matches
+            the primary shapes exactly.
           </p>
-          <p>
-            For example, zoom into the Stop sign's <b>S</b> below and see the official SVG has a
-            distorted shoulder whereas the primary artwork curves smoothly;
-            <code>mutcd-ts</code> matches the latter exactly. The
-            slight color differences are expected: official files use print CMYK
-            conversions while <code>mutcd-ts</code> uses the Pantone colors
-            the spec defines.
-          </p>
-        </div>
-        <div class="compare">
-          <figure class="compare-cell">
-            <img src="./compare/R1-1-svg.png" alt="FHWA's published SVG conversion of the R1-1 Stop sign" width="600" height="600" loading="lazy" decoding="async" />
-            <figcaption>FHWA's published SVG</figcaption>
-          </figure>
-          <figure class="compare-cell">
-            <img src="./compare/R1-1-ref.png" alt="Official FHWA primary artwork for the R1-1 Stop sign" width="600" height="600" loading="lazy" decoding="async" />
-            <figcaption>Official FHWA artwork (PDF)</figcaption>
-          </figure>
-          <figure class="compare-cell">
-            <img src="./compare/R1-1-ours.png" alt="R1-1 Stop sign rendered by mutcd-ts" width="600" height="600" loading="lazy" decoding="async" />
-            <figcaption><code>mutcd-ts</code> render</figcaption>
-          </figure>
         </div>
         <div class="compare compare-zoom">
           <figure class="compare-cell">
@@ -186,26 +165,15 @@
           </figure>
           <figure class="compare-cell">
             <img src="./compare/R1-1-zoom-pdf.png" alt="Zoom of the Stop sign's S in the primary PDF artwork, showing the correct round shoulder" width="600" height="480" loading="lazy" decoding="async" />
-            <figcaption>Primary PDF artwork: round shoulder</figcaption>
+            <figcaption>Primary PDF and <code>mutcd-ts</code>: round shoulder</figcaption>
           </figure>
           <figure class="compare-cell">
             <img src="./compare/R1-1-zoom-diff.png" alt="Pixel diff between the published SVG and the primary PDF: an orange sliver marks where the SVG deviates" width="600" height="480" loading="lazy" decoding="async" />
             <figcaption>Pixel diff: orange = SVG deviates from PDF</figcaption>
           </figure>
         </div>
-        <div class="compare-stats">
-          <div class="stat">
-            <span class="stat-value">45/45</span>
-            <span class="stat-label">references pass verification</span>
-          </div>
-          <div class="stat">
-            <span class="stat-value">0.00%</span>
-            <span class="stat-label">pixel mismatch on 41 of 45 signs</span>
-          </div>
-          <div class="stat">
-            <span class="stat-value">&le; 0.7%</span>
-            <span class="stat-label">worst case, on font-rendered guide signs</span>
-          </div>
+        <div class="section-more">
+          <a class="btn" href="fidelity/">Explore all four corrections &rarr;</a>
         </div>
       </section>
     </main>

@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mutcd-ts | Fidelity</title>
+    <meta
+      name="description"
+      content="Four places where published FHWA SVG exports differ from the primary 2024 Standard Highway Signs artwork, and how mutcd-ts corrects them."
+    />
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <script>
+      // Resolve appearance before first paint to avoid a flash.
+      {
+        const theme =
+          localStorage.getItem("theme") ??
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.dataset.signContrast =
+          localStorage.getItem("sign-contrast") ?? "normal";
+      }
+    </script>
+    <link rel="stylesheet" href="../src/style.css" />
+  </head>
+  <body>
+    <header class="nav">
+      <a class="brand" href="../" aria-label="mutcd-ts home">
+        <span class="brand-name" id="brand-title" aria-hidden="true"></span>
+      </a>
+      <nav class="nav-links">
+        <a href="../">Home</a>
+        <a href="../signs">Signs</a>
+        <a href="./" aria-current="page">Fidelity</a>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark mode">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="5" />
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+          </svg>
+        </button>
+        <button
+          class="contrast-toggle"
+          id="contrast-toggle"
+          type="button"
+          aria-label="Reduced contrast"
+          aria-pressed="false"
+          title="Reduced contrast"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path class="half-right" d="M12 3a9 9 0 0 1 0 18Z" />
+            <path class="half-left" d="M12 3a9 9 0 0 0 0 18Z" />
+          </svg>
+        </button>
+        <a
+          class="github-link"
+          href="https://github.com/brycedorn/mutcd-ts"
+          target="_blank"
+          rel="noopener"
+          aria-label="View mutcd-ts on GitHub"
+        >
+          <svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"
+            />
+          </svg>
+        </a>
+      </nav>
+    </header>
+
+    <main class="fidelity">
+      <header class="fidelity-hero">
+        <p class="eyebrow">Source fidelity</p>
+        <h1>When official vectors disagree</h1>
+        <p>
+          FHWA publishes the 2024 Standard Highway Signs in several formats.
+          During verification, four SVG exports showed small curve distortions
+          that are not present in the primary PDF artwork. <code>mutcd-ts</code>
+          follows the primary artwork and reproduces each corrected shape exactly.
+        </p>
+      </header>
+
+      <div class="fidelity-stats" aria-label="Verification summary">
+        <div class="stat">
+          <span class="stat-value">4</span>
+          <span class="stat-label">SVG conversion defects found</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">0.00%</span>
+          <span class="stat-label">mismatch after correction</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">All others</span>
+          <span class="stat-label">audited SVG exports unaffected</span>
+        </div>
+      </div>
+
+      <section class="fidelity-cases" aria-labelledby="case-studies-title">
+        <div class="fidelity-section-head">
+          <p class="eyebrow">Four corrections</p>
+          <h2 id="case-studies-title">The differences, up close</h2>
+          <p>
+            The highlighted diff isolates the changed geometry. Gray shows
+            matching artwork; orange marks the area introduced by the SVG
+            conversion.
+          </p>
+        </div>
+
+        <article class="fidelity-case">
+          <div class="case-copy">
+            <div class="case-sign" id="fidelity-sign-r1-1" aria-hidden="true"></div>
+            <div>
+              <p class="case-code">R1-1</p>
+              <h3>Stop sign: boxy S shoulder</h3>
+              <p>
+                The SVG export flattens the upper-left shoulder of the
+                <strong>S</strong>. The PDF keeps a smooth continuous curve,
+                which is the shape used by <code>mutcd-ts</code>.
+              </p>
+            </div>
+          </div>
+          <div class="case-compare">
+            <figure>
+              <img src="../compare/R1-1-zoom-svg.png" alt="Published SVG crop with a flattened upper-left shoulder on the letter S" width="600" height="480" loading="lazy" decoding="async" />
+              <figcaption>Published SVG</figcaption>
+            </figure>
+            <figure>
+              <img src="../compare/R1-1-zoom-pdf.png" alt="Primary PDF crop with a smoothly rounded upper-left shoulder on the letter S" width="600" height="480" loading="lazy" decoding="async" />
+              <figcaption>Primary PDF and <code>mutcd-ts</code></figcaption>
+            </figure>
+            <figure>
+              <img src="../compare/R1-1-zoom-diff.png" alt="Diff crop highlighting the flattened S shoulder from the SVG export in orange" width="600" height="480" loading="lazy" decoding="async" />
+              <figcaption>Highlighted difference</figcaption>
+            </figure>
+          </div>
+        </article>
+
+        <article class="fidelity-case">
+          <div class="case-copy">
+            <div class="case-sign case-sign-wide" id="fidelity-sign-r11-2" aria-hidden="true"></div>
+            <div>
+              <p class="case-code">R11-2</p>
+              <h3>Road Closed: bumped C terminals</h3>
+              <p>
+                The SVG adds small outward bumps where the upper and lower
+                terminals meet the <strong>C</strong>. The PDF terminals taper
+                cleanly without those protrusions.
+              </p>
+            </div>
+          </div>
+          <div class="case-compare">
+            <figure>
+              <img src="../compare/R11-2-zoom-svg.png" alt="Published SVG crop showing small bumps on both open terminals of the letter C" width="600" height="480" loading="lazy" decoding="async" />
+              <figcaption>Published SVG</figcaption>
+            </figure>
+            <figure>
+              <img src="../compare/R11-2-zoom-pdf.png" alt="Primary PDF crop showing smooth terminals on the letter C" width="600" height="480" loading="lazy" decoding="async" />
+              <figcaption>Primary PDF and <code>mutcd-ts</code></figcaption>
+            </figure>
+            <figure>
+              <img src="../compare/R11-2-zoom-diff.png" alt="Diff crop highlighting both unwanted bumps on the letter C in orange" width="600" height="480" loading="lazy" decoding="async" />
+              <figcaption>Highlighted difference</figcaption>
+            </figure>
+          </div>
+        </article>
+
+        <article class="fidelity-case">
+          <div class="case-copy">
+            <div class="case-sign" id="fidelity-sign-w13-1p" aria-hidden="true"></div>
+            <div>
+              <p class="case-code">W13-1P</p>
+              <h3>Advisory speed: flattened bowls</h3>
+              <p>
+                Several outside curves on the numerals become slightly flat in
+                the SVG. The corrected paths preserve the round bowls from the
+                primary artwork.
+              </p>
+            </div>
+          </div>
+          <div class="case-compare">
+            <figure>
+              <img src="../compare/W13-1P-zoom-svg.png" alt="Published SVG crop showing flattened outside curves on the numerals 3 and 5" width="600" height="480" loading="lazy" decoding="async" />
+              <figcaption>Published SVG</figcaption>
+            </figure>
+            <figure>
+              <img src="../compare/W13-1P-zoom-pdf.png" alt="Primary PDF crop showing smooth rounded outside curves on the numerals 3 and 5" width="600" height="480" loading="lazy" decoding="async" />
+              <figcaption>Primary PDF and <code>mutcd-ts</code></figcaption>
+            </figure>
+            <figure>
+              <img src="../compare/W13-1P-zoom-diff.png" alt="Diff crop highlighting the flattened numeral curves from the SVG export in orange" width="600" height="480" loading="lazy" decoding="async" />
+              <figcaption>Highlighted difference</figcaption>
+            </figure>
+          </div>
+        </article>
+
+        <article class="fidelity-case">
+          <div class="case-copy">
+            <div class="case-sign" id="fidelity-sign-w11-1" aria-hidden="true"></div>
+            <div>
+              <p class="case-code">W11-1</p>
+              <h3>Bicycle: nicked frame edge</h3>
+              <p>
+                A short edge of the bicycle frame develops a visible nick in
+                the SVG export. The PDF and <code>mutcd-ts</code> retain the
+                intended straight, uninterrupted edge.
+              </p>
+            </div>
+          </div>
+          <div class="case-compare">
+            <figure>
+              <img src="../compare/W11-1-zoom-svg.png" alt="Published SVG crop showing a small nick along the bicycle frame near the front wheel" width="600" height="480" loading="lazy" decoding="async" />
+              <figcaption>Published SVG</figcaption>
+            </figure>
+            <figure>
+              <img src="../compare/W11-1-zoom-pdf.png" alt="Primary PDF crop showing a clean continuous bicycle frame edge" width="600" height="480" loading="lazy" decoding="async" />
+              <figcaption>Primary PDF and <code>mutcd-ts</code></figcaption>
+            </figure>
+            <figure>
+              <img src="../compare/W11-1-zoom-diff.png" alt="Diff crop highlighting the nick in the bicycle frame from the SVG export in orange" width="600" height="480" loading="lazy" decoding="async" />
+              <figcaption>Highlighted difference</figcaption>
+            </figure>
+          </div>
+        </article>
+      </section>
+
+      <section class="fidelity-method" aria-labelledby="method-title">
+        <div>
+          <p class="eyebrow">Verification method</p>
+          <h2 id="method-title">Measured, not eyeballed</h2>
+        </div>
+        <ol>
+          <li>
+            <strong>Start with primary artwork.</strong>
+            Compare every published vector against the corresponding PDF at the
+            same physical dimensions.
+          </li>
+          <li>
+            <strong>Normalize print colors.</strong>
+            Group CMYK-converted pixels into SHS color classes so color-profile
+            differences do not count as geometry errors.
+          </li>
+          <li>
+            <strong>Diff the geometry.</strong>
+            Ignore a one-pixel anti-aliasing boundary, then measure every
+            remaining shape discrepancy.
+          </li>
+          <li>
+            <strong>Verify the render.</strong>
+            Render <code>mutcd-ts</code> at the same scale and require these
+            corrected templates to match the primary artwork pixel for pixel.
+          </li>
+        </ol>
+        <p class="method-note">
+          Official colors may still appear slightly different on screen because
+          the source files contain print CMYK conversions, while
+          <code>mutcd-ts</code> uses the Pantone colors named by the standard.
+        </p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <p>
+          MIT licensed. Sign geometry derives from the public-domain FHWA 2024
+          Standard Highway Signs. Not certified sign fabrication data.
+        </p>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="https://www.npmjs.com/package/mutcd-ts" target="_blank" rel="noopener">
+            npm
+          </a>
+          <a href="https://github.com/brycedorn/mutcd-ts" target="_blank" rel="noopener">
+            GitHub
+          </a>
+          <a
+            href="https://github.com/brycedorn/mutcd-ts/issues"
+            target="_blank"
+            rel="noopener"
+          >
+            Issues
+          </a>
+        </nav>
+      </div>
+    </footer>
+
+    <script type="module" src="../src/fidelity.ts"></script>
+  </body>
+</html>

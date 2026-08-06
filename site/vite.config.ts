@@ -80,6 +80,7 @@ export default defineConfig({
       input: {
         main: here("index.html"),
         signs: here("signs/index.html"),
+        fidelity: here("fidelity/index.html"),
       },
     },
   },

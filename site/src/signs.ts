@@ -114,6 +114,7 @@ for (const a of document.querySelectorAll<HTMLAnchorElement>(
 // --- gallery (built once; hidden while a detail route is active) ---
 
 const byCategory = new Map<string, ReturnType<typeof listSigns>>();
+const categoryViews: Array<{ heading: HTMLElement; grid: HTMLElement }> = [];
 for (const sign of listSigns()) {
   const list = byCategory.get(sign.category) ?? [];
   list.push(sign);
@@ -131,15 +132,55 @@ for (const category of CATEGORY_ORDER) {
   grid.className = "grid";
   galleryEl.appendChild(grid);
   for (const sign of signs) grid.appendChild(card(sign.code as SignCode));
+  categoryViews.push({ heading: h2, grid });
 }
 
+const emptyGallery = document.createElement("p");
+emptyGallery.className = "gallery-empty";
+emptyGallery.append("No signs match that search. Missing a sign? ");
+const requestSign = document.createElement("a");
+requestSign.href = "https://github.com/brycedorn/mutcd-ts/issues";
+requestSign.target = "_blank";
+requestSign.rel = "noopener";
+requestSign.textContent = "Request it";
+emptyGallery.append(requestSign, ".");
+emptyGallery.setAttribute("role", "status");
+emptyGallery.hidden = true;
+galleryEl.appendChild(emptyGallery);
+
+const searchForm = document.getElementById("sign-search-form");
+const searchInput = document.getElementById("sign-search");
+searchForm?.addEventListener("submit", (event) => event.preventDefault());
+searchInput?.addEventListener("input", () => {
+  if (!(searchInput instanceof HTMLInputElement)) return;
+  const query = searchKey(searchInput.value);
+  let visible = 0;
+  for (const card of galleryEl.querySelectorAll<HTMLElement>(".card")) {
+    card.hidden = query.length > 0 && !card.dataset.search!.includes(query);
+    if (!card.hidden) visible += 1;
+  }
+  for (const { heading, grid } of categoryViews) {
+    const hasVisibleCard = [...grid.children].some(
+      (child) => child instanceof HTMLElement && !child.hidden,
+    );
+    heading.hidden = !hasVisibleCard;
+    grid.hidden = !hasVisibleCard;
+  }
+  emptyGallery.hidden = visible > 0;
+});
+
 route();
+
+function searchKey(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
 
 function card(code: SignCode): HTMLElement {
   const template = SIGNS[code];
   const props: Record<string, unknown> = structuredClone(template.defaults);
   const el = document.createElement("div");
   el.className = "card";
+  el.dataset.search = searchKey(`${code} ${template.name}`);
   const title = document.createElement("div");
   title.className = "title";
   const link = document.createElement("a");
